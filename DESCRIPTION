@@ -4,7 +4,7 @@ Title: Niesert, R. (2017) Bayesian Inference for Generalized Autoregressive Scor
 Version: 0.1.0
 Author: Robin Niesert <robin.niesert@gmail.com>
 Maintainer: Robin Niesert <robin.niesert@gmail.com>
-Description: Package contains source code, data and analysis presented in the master thesis Bayesian Inference for Generalized Autoregressive Score Models.
+Description: Package contains source code, data and analysis presented in the master thesis Bayesian Inference for Generalized Autoregressive Score Models (2017), by Robin Niesert.
 Depends: R (>= 3.5.3)
 License: None
 Imports: methods, Rcpp (>= 1.0.1)
