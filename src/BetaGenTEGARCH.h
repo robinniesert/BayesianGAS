@@ -2,26 +2,40 @@
 #define BetaGenTEGARCH_h 1
 
 #include "GASModel.h"
+#include "PriorStack.h"
 #include <Rcpp.h>
 using namespace Rcpp;
 
 class BetaGenTEGARCH: public GASModel{
 public:
-  BetaGenTEGARCH(double initMu, double initOmega, double initA, double initB, 
+  BetaGenTEGARCH();
+  BetaGenTEGARCH(NumericVector initParams);
+  BetaGenTEGARCH(NumericVector initParams, PriorStack priorStack);
+  BetaGenTEGARCH(double initMu, double initOmega, double initA, double initB,
                  double initEtaBar, double initUpsilon);
-  
-  virtual void NameParams(NumericVector initParams);
-  virtual double LogL(NumericVector y, double f1);
-  virtual NumericVector Filter(NumericVector y, double f1);
-  
-  double mu;
-  double etaBar;
-  double upsilon;
-  
-private:
-  double LogLUpdate(double y, double f);
-  double CalculateScore(double y, double f);
-  bool CheckParamValidity();
+
+  virtual void SetParams(NumericVector initParams);
+  virtual bool ParamsValid();
+
+  virtual double UpdateLogL(double y, double f);
+  virtual double ScaledScore(double y, double f);
+  virtual double ScoreScale(double y, double f);
+  virtual double Score(double y, double f);
+  virtual double LogConstant();
+
+  virtual void CalculateScaledScore(
+      double y, double f, double &s, double &score);
+  virtual void CalculateDerrLogConstant(NumericVector &dLogConst);
+  virtual void CalculateDerrScaledScore(
+      double y, double f, NumericVector df, NumericVector &ds, double &dsf);
+  virtual void UpdateGradLogLFixedF(double y, double f, NumericVector &grad);
+
+  NumericVector VolFilter(NumericVector y, double f1);
+
+  double Mu;
+  double EtaBar;
+  double Upsilon;
+
 };
 
 #endif
