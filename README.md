@@ -8,5 +8,3 @@ This repository contains the code and data necessary to reproduce the results an
 ## R package 
 
 This repository is organized as an R package.
-
-Package 
