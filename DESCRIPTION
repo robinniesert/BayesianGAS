@@ -1,0 +1,22 @@
+Package: BayesianGAS
+Type: Package
+Title: Niesert, R. (2017) Bayesian Inference for Generalized Autoregressive Score Models, Master Thesis
+Version: 0.1.0
+Author: Robin Niesert <robin.niesert@gmail.com>
+Maintainer: Robin Niesert <robin.niesert@gmail.com>
+Description: Package contains source code, data and analysis presented in the master thesis Bayesian Inference for Generalized Autoregressive Score Models.
+Depends: R (>= 3.5.3)
+License: None
+Imports: methods, Rcpp (>= 1.0.1)
+LinkingTo: RcppArmadillo
+Encoding: UTF-8
+LazyData: true
+Suggests:
+    AdMit,
+    coda, 
+    knitr,
+    moments,
+    rmarkdown,
+    testthat,
+VignetteBuilder: knitr
+SystemRequirements: C++11

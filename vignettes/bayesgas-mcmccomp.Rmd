@@ -1,0 +1,596 @@
+---
+title: "MCMC Method Comparisons: Beta-Gen-t-EGARCH"
+author: "Robin Niesert"
+date: "April 2nd, 2019"
+output: 
+  rmarkdown::html_vignette:
+vignette: >
+  %\VignetteIndexEntry{MCMC Method Comparisons: Beta-Gen-t-EGARCH}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{AdMit, coda, moments}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig_show = 'hold',
+  fig.width = 7,
+  fig.height = 5,
+  fig_align = 'center'
+)
+```
+
+# MCMC Method Comparisons: Beta-Gen-t-EGARCH
+
+This document contains the R code to reproduce the plots and statistical analysis presented in section 4.1 of 
+> Niesert, R. "Bayesian Inference for Generalized Autoregressive Score Models." (2017).
+
+```{r lib}
+library(BayesianGAS)
+```
+
+```{r seed_and_constants}
+set.seed(100)
+kFiveYrsIdx <- 3769
+kNumParams  <- 6
+```
+
+## Load data 
+
+```{r load_data}
+data(SP500, package = "BayesianGAS")
+times   <- as.Date(rev(spData$Date)[-(1:kFiveYrsIdx)])
+returns <- ts(
+  diff(rev(spData$Adj.Close))[-(1:(kFiveYrsIdx - 1))],
+  start = c(2012, 4, 16),
+  frequency = 254
+)
+```
+
+### Plot Returns
+```{r}
+leg = "S&P 500 Returns"
+par(mfrow = c(1, 1))
+plot(times, returns, type = "l", xaxt = "n", xlab = "Years", ylab = "Return")
+legend("topleft", legend = leg, bty = "n", lty = 1)
+axis.Date(1, at = seq(min(times), max(times), by = "4 mon"), format = "%Y-%m")
+```
+
+### Set data attributes
+```{r set_data_attr}
+exKurt <- moments::kurtosis(returns) - 3
+# Based on student-t second and fourth order moments
+ltScale <- log(sd(returns) * sqrt((6 / exKurt + 2) / (6 / exKurt + 4)))
+numObs <- length(returns)
+```
+
+## Maximum Likelihood (ML) estimation 
+
+```{r ML_estimation}
+initParams  <- c(
+  omega = ltScale,
+  A = 0.05,
+  B = 0.95,
+  mu = mean(returns),
+  etaBar = 0.2,
+  upsilon = 2
+)
+startTime <- Sys.time()
+betaGen <- FitML(
+  model = new(BetaGenTEGARCH),
+  initParams = initParams,
+  y = returns,
+  f1 = ltScale,
+  method = 'BFGS',
+  control = list(maxit = 1e5),
+  hessian = TRUE,
+  verbose = TRUE
+)
+endTime <- Sys.time()
+timeML <- difftime(endTime, startTime, units = 'secs')
+cat("ML Time: ", timeML, sprintf(" seconds\n"))
+```
+
+### Plot volatility
+```{r}
+betaGen$SetParams(betaGen$ParamsML)
+volsGen <- betaGen$VolFilter(returns, ltScale)
+par(mfrow = c(1, 1))
+plot.ts(cbind(abs(returns - betaGen$Mu), volsGen), col = c("black", "red"),
+        lwd = c(1, 1.5), plot.type = "single", ylab = "Volatility")
+leg <- c(bquote(GAS - t ~ (logL = .(round(betaGen$LogLValML, 4)))))
+legend("topleft", legend = leg, lty = c(1), lwd = c(1.5), col = c("red"),
+       bty = "n")
+
+```
+
+## Markov Chain Monte Carlo (MCMC)
+
+```{r}
+iter <- 2e3
+priorStack <- new(
+  PriorStack,
+  rep("ImproperUniform", kNumParams),
+  list(
+    c(-Inf, Inf),
+    c(-Inf, Inf),
+    c(-1, 1),
+    c(-Inf, Inf),
+    c(0, 0.5),
+    c(0, Inf)
+  )
+)
+```
+
+### Random Walk Metropolis Hastings (RWMH)
+```{r}
+startTime <- Sys.time()
+firstWarmUpRWMH <- RWMH(
+  "BetaGenTEGARCH",
+  priorStack,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParams,
+  sigma = diag(kNumParams),
+  iter = 100,
+  stepsize = 0.01
+)
+secondWarmUpRWMH <- RWMH(
+  "BetaGenTEGARCH",
+  priorStack,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParams,
+  sigma = cov(firstWarmUpRWMH),
+  iter = 1000,
+  stepsize = 1
+)
+drawsRWMH <- RWMH(
+  "BetaGenTEGARCH",
+  priorStack,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParams,
+  sigma = cov(secondWarmUpRWMH),
+  iter = iter,
+  stepsize = 1
+)
+endTime <- Sys.time()
+timeRWMH <- difftime(endTime, startTime, units = 'secs')
+cat("RWMH Time: ", timeRWMH, sprintf(" seconds\n"))
+```
+
+### Adaptive Mixture of Student-t Distributions (AdMit)-MH
+```{r}
+logOffset <- 250 - betaGen$LogLValML # constant needed to prevent under/overflow
+startTime <- Sys.time()
+tries <- 0
+# AdMit Optimization occsianlly fails,
+# give it a few tries as randomness might be on your side.
+while (tries < 5) {
+  possibleError <- tryCatch(
+    outAdMit <- AdMit::AdMit(
+      VectorizedPosterior,
+      mu0 = initParams,
+      control = list(df = 1, trace = TRUE),
+      modelStr = "BetaGenTEGARCH",
+      priorStack = priorStack,
+      y = as.matrix(returns),
+      f1 = ltScale,
+      logOffset = logOffset
+    ),
+    error = function(e) e
+  )
+
+  if (!inherits(possibleError, "error")) {
+    cat("AdMit tries: ", tries + 1, sprintf("\n"))
+    break
+  }else{
+    tries <- tries + 1
+    cat("ERROR: ", sprintf("\n"))
+    print(possibleError)
+  }
+}
+if (tries == 5) {
+  sprintf("AdMit optimization failed 5 times. Try different settings.")
+}
+
+betaGenAdMitMH <- AdMit::AdMitMH(
+  N = iter,
+  KERNEL = VectorizedPosterior,
+  modelStr = "BetaGenTEGARCH",
+  priorStack = priorStack,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  logOffset = logOffset,
+  mit = outAdMit$mit
+)
+endTime <- Sys.time()
+timeAdMit <- difftime(endTime, startTime, units = 'secs')
+cat("AdMit-MH Time: ", timeAdMit, sprintf(" seconds\n"))
+cat("AdMit-MH Accept Rate: ", betaGenAdMitMH$accept, sprintf("\n"))
+```
+
+### Griddy Gibbs Sampler (GGS) 
+```{r}
+numGridPoints <- 25
+lbParams <- apply(drawsRWMH, 2, function(x) {min(x) - 0.5 * sd(x)})
+lbParams[5] <- max(1E-5, lbParams[5]) # lbEtab dilimited to 0
+ubParams <- apply(drawsRWMH, 2, function(x) {max(x) + 0.5 * sd(x)})
+ubParams[5] <- min(0.5 - 1E-5, ubParams[5]) # ubEtab dilimited to 0.5
+ubParams[3] <- min(1 - 1E-5, ubParams[3])  # ubB to 1
+grid <- apply(
+  cbind(lbParams, ubParams),
+  1,
+  function(x) {seq(x[1], x[2], length.out = numGridPoints)}
+)
+startTime <- Sys.time()
+drawsGGS <- GGS(
+  "BetaGenTEGARCH",
+  priorStack,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParams,
+  grid = grid,
+  iter = iter,
+  logOffset = logOffset,
+  printIter = 1000
+)
+endTime <- Sys.time()
+timeGGS <- difftime(endTime, startTime, units = 'secs')
+cat("GGS Time: ", timeGGS, sprintf(" seconds\n"))
+```
+
+### Hamiltonian Monte Carlo (HMC)
+```{r}
+lb = c(-Inf, -Inf, -1., -Inf, 0., 0.)
+ub = c(Inf, Inf, 1., Inf, 0.5, Inf)
+startTime <- Sys.time()
+firstWarmUpHMC <- HMC(
+  "BetaGenTEGARCH",
+  priorStack,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParams,
+  iter = 100,
+  mass = diag(kNumParams),
+  stepsize = 0.01,
+  integrationTime = 0.2,
+  lb = lb,
+  ub = ub
+)
+secondWarmUpHMC <- HMC(
+  "BetaGenTEGARCH",
+  priorStack,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParams,
+  iter = 100,
+  mass = solve(cov(firstWarmUpHMC[-(1:50),])),
+  stepsize = 0.1,
+  integrationTime = 2.,
+  lb = lb,
+  ub = ub
+)
+drawsHMC <- HMC(
+  "BetaGenTEGARCH",
+  priorStack,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParams,
+  iter = iter,
+  mass = solve(cov(secondWarmUpHMC[-(1:20),])),
+  stepsize = 0.5,
+  integrationTime = 2.0,
+  lb = lb,
+  ub = ub
+)
+endTime <- Sys.time()
+timeHMC <- difftime(endTime, startTime, units = 'secs')
+cat("HMC Time: ", timeHMC, sprintf(" seconds\n"))
+
+```
+
+## Comparing MCMC Methods 
+```{r}
+mcmcNames <- c("RWMH", "Griddy Gibbs", "AdMit", "HMC")
+N <- kNumParams * length(mcmcNames)
+parNames <- list(
+  expression(tilde(omega)),
+  "A",
+  "B",
+  expression(mu),
+  expression(bar(eta)),
+  expression(upsilon)
+)
+# First draw is weird, should be ignored
+betaGenAdMitMH$draws[1,] <- betaGenAdMitMH$draws[2,]
+samples <- matrix(cbind(drawsRWMH, drawsGGS, betaGenAdMitMH$draws, drawsHMC),
+                  iter, N)
+colNames <- c()
+for (mcmcName in mcmcNames) {
+  for (parName in parNames) {
+    colNames <- c(colNames, paste(mcmcName, parName, sep = " "))
+  }
+}
+colnames(samples) <- colNames
+burn <- 1000
+```
+
+### Convergence 
+```{r}
+mcmcSamples <- coda::mcmc(samples, start = burn, end = iter)
+GC.diagnostic <- coda::geweke.diag(mcmcSamples, 0.1, 0.5)
+zVals <- matrix(GC.diagnostic$z, ncol = kNumParams, byrow = TRUE)
+zVals <- data.frame(zVals, row.names = mcmcNames)
+colnames(zVals) <- c("OmegaTilde", "A", "B", "Mu", "EtaBar", "Upsilon")
+knitr::kable(zVals, caption = "Geweke convergence diagnostics")
+knitr::kable(abs(zVals) < 1.96, caption = "Geweke convergence diagnostics test @ 5% significance")
+```
+
+### Descriptic statistics of MCMC draws
+```{r}
+summary <- summary(mcmcSamples)
+knitr::kable(summary$statistics)
+```
+
+### Effective sample sizes (ESSs) & factors
+```{r}
+timesMcmc <- c(timeRWMH, timeGGS, timeAdMit, timeHMC)
+ESSs <- coda::effectiveSize(mcmcSamples)
+ESSs <- matrix(ESSs, ncol = kNumParams, byrow = TRUE)
+ESSs <- data.frame(ESSs, row.names = mcmcNames)
+colnames(ESSs) <- c("OmegaTilde", "A", "B", "Mu", "EtaBar", "Upsilon")
+knitr::kable(ESSs, caption = "Effective sample sizes")
+knitr::kable(ESSs / as.numeric(timesMcmc), caption = "Effective sample sizes per second")
+```
+
+### Trace plots 
+```{r}
+PlotTraces(
+  samples,
+  mcmcNames[-1],
+  parNames = list("B", expression(bar(eta))),
+  #iters = (10000:10500),
+  cols = c(2, 4)
+)
+```
+
+### Histograms
+```{r}
+PlotHistograms(
+  samples,
+  mcmcNames[-1],
+  parNames = list("B", expression(bar(eta)), expression(upsilon)),
+  burn = burn
+)
+```
+
+### Joint distribtuion plots 
+```{r, fig.width = 6, fig.height = 6, fig_align = 'center'}
+paramPairs <- list(
+  list(expression(tilde(omega)), "B"),
+  list("A", "B"),
+  list(expression(omega), "B"),
+  list(expression(bar(eta)), expression(upsilon))
+)
+colnames(drawsHMC) <- parNames
+names(lbParams) <- parNames
+names(ubParams) <- parNames
+omegaDrawsHMC <- drawsHMC[,paste(parNames[1])] * (1 - drawsHMC[,"B"])
+drawsHMC_ <- cbind(drawsHMC, "expression(omega)" = omegaDrawsHMC)
+lbParams_ <- c(lbParams, "expression(omega)" = 0.0)
+ubParams_ <- c(ubParams, "expression(omega)" = 0.85)
+PlotJointDists(drawsHMC_, paramPairs, lbParams_, ubParams_, burn = burn)
+```
+
+### Auto Correlation Function (ACF) plots 
+```{r}
+PlotACFs(
+  samples,
+  mcmcNames[-1],
+  parNames = list("B", expression(bar(eta))),
+  burn = burn
+)
+```
+
+## Posterior of volatility 
+
+```{r}
+volsGenDraws <- matrix(0, iter - burn, length(returns))
+for (i in 1:(iter - burn)) {
+  betaGen$SetParams(as.vector(drawsHMC[burn + i,]))
+  volsGenDraws[i, ] <- betaGen$VolFilter(returns, ltScale)
+  if ((i > 0) && ((i %% 1e4) == 0)) {
+    cat(sprintf("iter %i\n", i));
+  }
+}
+# Draws for which EtaBar is close to zero will result in under/overflow issues
+# in the gamma function. This is corrected for by calculating vols for these
+# draws using the limiting GED volatility formula.
+zeroix <- which(
+  apply(volsGenDraws, 1, function(x) any(x == 0)) |
+  apply(volsGenDraws, 1, function(x) any(is.na(x)))
+)
+for (i in zeroix) {
+  betaGen$SetParams(drawsHMC[burn + i,])
+  scale <- betaGen$Filter(returns, ltScale)
+  volsGenDraws[i, ] <- (
+    exp(scale) * (betaGen$Upsilon ^ (1 / betaGen$Upsilon)) *
+    sqrt(gamma(3 / betaGen$Upsilon) /  gamma(1 / betaGen$Upsilon))
+  )
+}
+```
+
+### Highest Posterior Density (HPD) volatility plots
+```{r, fig.width = 10, fig.height = 6, fig_align = 'center'}
+zoomDate <- "2016-09-12"
+PlotHPDOverTime(
+  volsGenDraws,
+  returns,
+  times,
+  startDate = "2016-04-21",
+  endDate = "2017-04-21",
+  ylab = "Returns",
+  statStr = "volatility",
+  obsStr = "S&P 500 absolute returns",
+  statsML = volsGen,
+  zoomDate = zoomDate,
+  xy1 = list(x = c(17056, 17165), y = c(39.5, 102)),
+  xy2 = list(x = c(17056, 17165), y = c(18, 55))
+)
+```
+
+### Some posterior statistics of volatility
+```{r, collapse = FALSE}
+zoomDateIdx <- which(times == as.Date(zoomDate))
+zoomDateDraws <- volsGenDraws[, zoomDateIdx]
+```
+Return the day before `r zoomDate`: `r returns[zoomDateIdx - 1]`
+Mean skewness whole sample: `r mean(moments::skewness(volsGenDraws))`
+Mean kurtosis whole sample: `r mean(moments::kurtosis(volsGenDraws))`
+Mean skewness on `r zoomDate`: `r mean(moments::skewness(zoomDateDraws))`
+Mean kurtosis on `r zoomDate`: `r mean(moments::kurtosis(zoomDateDraws))`
+
+
+## Miscelaneuos
+
+### Value at Risk (VaR) histogram
+```{r, fig.width = 6, fig.height = 4, fig.align = 'centre'}
+VaRBetaGenTEGARCH <- function(params, vols, muIdx, etaBIdx, upsIdx, alpha=0.99){
+  if (is.matrix(params)) {
+    mu <- params[, muIdx]
+    etaB <- params[, etaBIdx]
+    ups <- params[, upsIdx]
+  }else{
+    mu <- params[muIdx]
+    etaB <- params[etaBIdx]
+    ups <- params[upsIdx]
+  }
+
+  xt <- qbeta(2 * (1 - alpha), 1 / (etaB * ups), 1 / ups)
+  Finvxt <- (((1 - xt) / (etaB * xt)) ^ (1 / ups))
+  if (is.matrix(vols)) {
+    numDraws <- dim(vols)[1]
+    numObs <- dim(vols)[2]
+    VaR <- matrix(0, numDraws, numObs)
+    for (i in 1:numObs) {
+      VaR[, i] <- mu + vols[, i] * Finvxt
+    }
+  }else{
+    VaR <- mu + vols * Finvxt
+  }
+  return(VaR)
+}
+VaR99 <- VaRBetaGenTEGARCH(
+  drawsHMC[-(1:burn),],
+  volsGenDraws,
+  "expression(mu)",
+  "expression(bar(eta))",
+  "expression(upsilon)",
+  alpha = 0.99
+)
+VaR99ML <- VaRBetaGenTEGARCH(betaGen$ParamsML, volsGen, 4, 5, 6, alpha = 0.99)
+par(mfrow = c(1, 1), mar = c(4.5, 4.5, 2, 2))
+h <- hist(main = "", VaR99[, zoomDateIdx], xlab = "", breaks = 9:50 * 4, 
+          plot = FALSE)
+plot(h, main = "", xlab = "")
+title(xlab = expression(VaR[99]), cex.lab = 1.2)
+abline(v = VaR99ML[zoomDateIdx], lty = 2, col = "blue")
+abline(v = mean(VaR99[, zoomDateIdx]), lty = 2, col = "red")
+leg <- c(
+  paste("ML estimate VaR 99% ~ ", sprintf("%.1f", VaR99ML[zoomDateIdx])),
+  paste("Posterior Mean VaR 99% ~ ", sprintf("%.1f", mean(VaR99[,zoomDateIdx])))
+)
+legend("topright", legend = leg, bty = "n", col = c("blue", "red"), 
+       lty = c(2, 2))
+```
+
+### Degrees of freedom parameter histogram
+```{r, fig.width = 6, fig.height = 4, fig.align = 'centre'}
+drawsEta <- 1 / drawsHMC[-(1:burn), "expression(bar(eta))"]
+cat("Posterior range Eta parameter: ", range(drawsEta), sprintf("\n"))
+hist(main = "", drawsEta[drawsEta < 200], xlab = "", breaks = 0:40 * 5)
+title(xlab = expression(eta), cex.lab = 1.2)
+```
+
+### Score function plots
+```{r, fig.width = 5, fig.height = 5, fig.align = 'centre', results = 'hold', collapse = FALSE}
+scoreGenT <- function(etaBar, upsilon, residual){
+  b <- (etaBar * (abs(residual) ^ upsilon) /
+          (etaBar * (abs(residual) ^ upsilon) + 1))
+  return(((etaBar + 1) / etaBar) * b - 1)
+}
+scoreGED <- function(upsilon, residual){
+  return((abs(residual) ^ upsilon) - 1)
+}
+drawsA <- drawsHMC[-(1:burn), "A"]
+drawsMu <- drawsHMC[-(1:burn), "expression(mu)"]
+drawsEtaB <- drawsHMC[-(1:burn), "expression(bar(eta))"]
+drawsUps <- drawsHMC[-(1:burn), "expression(upsilon)"]
+par(mfrow = c(1, 1), mar = c(4.5, 4.5, 2, 2))
+ixMin <- which.min(volsGenDraws[, zoomDateIdx])
+ixMax <- which.max(volsGenDraws[, zoomDateIdx])
+fGenDraws <- matrix(0, iter - burn, length(returns))
+for (i in 1:(iter - burn)) {
+  betaGen$SetParams(as.vector(drawsHMC[burn + i,]))
+  fGenDraws[i, ] <- betaGen$Filter(returns, ltScale)
+  if ((i > 0) && ((i %% 1e4) == 0)) {
+    cat(sprintf("iter %i\n", i));
+  }
+}
+epsMin <- (exp(-fGenDraws[, zoomDateIdx - 1][ixMin]) *
+             (returns[zoomDateIdx - 1] - drawsMu[ixMin]))
+epsMax <- (exp(-fGenDraws[, zoomDateIdx - 1][ixMax]) *
+             (returns[zoomDateIdx - 1] - drawsMu[ixMax]))
+xVals <- -25:25 / 2.5
+scoreGenMin <- scoreGenT(drawsEtaB[ixMin], drawsUps[ixMin], xVals)
+scoreGenMax <- scoreGenT(drawsEtaB[ixMax], drawsUps[ixMax], xVals)
+scoreGenMaxAdj <- (scoreGenT(drawsEtaB[ixMax], drawsUps[ixMax], xVals) *
+                     drawsA[ixMax] / drawsA[ixMin])
+scoreGenEpsMin <- scoreGenT(drawsEtaB[ixMin], drawsUps[ixMin], epsMin)
+scoreGenEpsMax <- scoreGenT(drawsEtaB[ixMax], drawsUps[ixMax], epsMax)
+scoreGenEpsMaxAdj <- (scoreGenT(drawsEtaB[ixMax], drawsUps[ixMax], epsMax) *
+                     drawsA[ixMax] / drawsA[ixMin])
+plot(
+  xVals,
+  scoreGenMin,
+  ylab = "Score",
+  xlab = "Standardized observation",
+  col = "red",
+  type = "l",
+  ylim = c(-1.5, 25)
+)
+lines(xVals, scoreGenMax, col = "blue")
+lines(xVals, scoreGenMaxAdj, col = "blue", lty = 2)
+points(epsMin, scoreGenEpsMin, col = "green", pch = 8)
+points(epsMax, scoreGenEpsMax, col = "magenta", pch = 8)
+points(epsMax, scoreGenEpsMaxAdj, col = "magenta", pch = 8)
+leg <-
+  c(
+    "Score function min",
+    "Score function max",
+    "Score function max adj. for A",
+    "Standardized obs. 2016-09-09 min",
+    "Standardized obs. 2016-09-09 max"
+  )
+legend(
+  "topright",
+  legend = leg,
+  col = c("red", "blue", "blue", "green", "magenta"),
+  lty = c(1, 1, 2, NA, NA),
+  pch = c(NA, NA, NA, 8, 8)
+)
+par(mfrow = c(1, 1), mar = c(4.5, 2, 2, 2))
+plot(xVals, scoreGenT(0.2, 2, xVals), col = "red", type = "l",
+     ylim = c(-1.5, 10), xlab = "Standardized observation")
+lines(xVals, scoreGED(1, xVals), col = "blue")
+lines(xVals, scoreGED(1.5, xVals), col = "green")
+leg <- c("Student-t, 5 d.o.f.", "Laplace", "Gaussian")
+legend("topright", legend = leg, col = c("red", "blue", "green"), 
+       lty = c(1, 1, 1))
+
+```
+
