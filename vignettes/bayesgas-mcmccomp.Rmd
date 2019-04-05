@@ -41,7 +41,7 @@ kNumParams  <- 6
 
 ```{r load_data}
 data(SP500, package = "BayesianGAS")
-times   <- as.Date(rev(spData$Date)[-(1:kFiveYrsIdx)])
+dates   <- as.Date(rev(spData$Date)[-(1:kFiveYrsIdx)])
 returns <- ts(
   diff(rev(spData$Adj.Close))[-(1:(kFiveYrsIdx - 1))],
   start = c(2012, 4, 16),
@@ -53,16 +53,16 @@ returns <- ts(
 ```{r}
 leg = "S&P 500 Returns"
 par(mfrow = c(1, 1))
-plot(times, returns, type = "l", xaxt = "n", xlab = "Years", ylab = "Return")
+plot(dates, returns, type = "l", xaxt = "n", xlab = "Years", ylab = "Return")
 legend("topleft", legend = leg, bty = "n", lty = 1)
-axis.Date(1, at = seq(min(times), max(times), by = "4 mon"), format = "%Y-%m")
+axis.Date(1, at = seq(min(dates), max(dates), by = "4 mon"), format = "%Y-%m")
 ```
 
 ### Set data attributes
 ```{r set_data_attr}
 exKurt <- moments::kurtosis(returns) - 3
 # Based on student-t second and fourth order moments
-ltScale <- log(sd(returns) * sqrt((6 / exKurt + 2) / (6 / exKurt + 4)))
+ltScale <- log(stats::sd(returns) * sqrt((6 / exKurt + 2) / (6 / exKurt + 4)))
 numObs <- length(returns)
 ```
 
@@ -109,7 +109,7 @@ legend("topleft", legend = leg, lty = c(1), lwd = c(1.5), col = c("red"),
 ## Markov Chain Monte Carlo (MCMC)
 
 ```{r}
-iter <- 2e3
+iter <- 4e4
 priorStack <- new(
   PriorStack,
   rep("ImproperUniform", kNumParams),
@@ -216,9 +216,9 @@ cat("AdMit-MH Accept Rate: ", betaGenAdMitMH$accept, sprintf("\n"))
 ### Griddy Gibbs Sampler (GGS) 
 ```{r}
 numGridPoints <- 25
-lbParams <- apply(drawsRWMH, 2, function(x) {min(x) - 0.5 * sd(x)})
+lbParams <- apply(drawsRWMH, 2, function(x) {min(x) - 0.5 * stats::sd(x)})
 lbParams[5] <- max(1E-5, lbParams[5]) # lbEtab dilimited to 0
-ubParams <- apply(drawsRWMH, 2, function(x) {max(x) + 0.5 * sd(x)})
+ubParams <- apply(drawsRWMH, 2, function(x) {max(x) + 0.5 * stats::sd(x)})
 ubParams[5] <- min(0.5 - 1E-5, ubParams[5]) # ubEtab dilimited to 0.5
 ubParams[3] <- min(1 - 1E-5, ubParams[3])  # ubB to 1
 grid <- apply(
@@ -353,14 +353,14 @@ PlotTraces(
   samples,
   mcmcNames[-1],
   parNames = list("B", expression(bar(eta))),
-  #iters = (10000:10500),
+  iters = (10000:10500),
   cols = c(2, 4)
 )
 ```
 
 ### Histograms
 ```{r}
-PlotHistograms(
+PlotHists(
   samples,
   mcmcNames[-1],
   parNames = list("B", expression(bar(eta)), expression(upsilon)),
@@ -430,7 +430,7 @@ zoomDate <- "2016-09-12"
 PlotHPDOverTime(
   volsGenDraws,
   returns,
-  times,
+  dates,
   startDate = "2016-04-21",
   endDate = "2017-04-21",
   ylab = "Returns",
@@ -445,7 +445,7 @@ PlotHPDOverTime(
 
 ### Some posterior statistics of volatility
 ```{r, collapse = FALSE}
-zoomDateIdx <- which(times == as.Date(zoomDate))
+zoomDateIdx <- which(dates == as.Date(zoomDate))
 zoomDateDraws <- volsGenDraws[, zoomDateIdx]
 ```
 Return the day before `r zoomDate`: `r returns[zoomDateIdx - 1]`
@@ -494,8 +494,7 @@ VaR99 <- VaRBetaGenTEGARCH(
 )
 VaR99ML <- VaRBetaGenTEGARCH(betaGen$ParamsML, volsGen, 4, 5, 6, alpha = 0.99)
 par(mfrow = c(1, 1), mar = c(4.5, 4.5, 2, 2))
-h <- hist(main = "", VaR99[, zoomDateIdx], xlab = "", breaks = 9:50 * 4, 
-          plot = FALSE)
+h <- hist(VaR99[, zoomDateIdx], breaks = 9:50 * 4, plot = FALSE)
 plot(h, main = "", xlab = "")
 title(xlab = expression(VaR[99]), cex.lab = 1.2)
 abline(v = VaR99ML[zoomDateIdx], lty = 2, col = "blue")
@@ -517,7 +516,7 @@ title(xlab = expression(eta), cex.lab = 1.2)
 ```
 
 ### Score function plots
-```{r, fig.width = 5, fig.height = 5, fig.align = 'centre', results = 'hold', collapse = FALSE}
+```{r, fig.width = 5, fig.height = 5, fig.align = 'centre'}
 scoreGenT <- function(etaBar, upsilon, residual){
   b <- (etaBar * (abs(residual) ^ upsilon) /
           (etaBar * (abs(residual) ^ upsilon) + 1))
