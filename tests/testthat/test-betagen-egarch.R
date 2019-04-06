@@ -53,8 +53,8 @@ test_that("Volatility filter function produces correct outputs.", {
 
 test_that("Gradient of log likelihood is computed correctly.", {
   numDer <- function(x, eps=1e-5){
-    grad <- rep(0, 6)
-    for (i in 1:6) {
+    grad <- rep(0, kNumParams)
+    for (i in 1:kNumParams) {
       tmpX <- x
       tmpX[i] <- x[i] - eps
       fDown <- betaGen$LogLWPar(tmpX, returns, ltScale)

@@ -4,7 +4,7 @@ FitML <- function(model, initParams, y, f1, method = 'BFGS',
   control <- c(control, fnscale = -1)
 
   startTime <- Sys.time()
-  optimModel   <- optim(
+  optimModel   <- stats::optim(
     initParams,
     model$LogLWPar,
     y = y,

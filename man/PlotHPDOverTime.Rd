@@ -37,6 +37,9 @@ the HPD region.}
 
 \item{obsStr}{String to describe the observation series.}
 
+\item{statsML}{Numeric vector of length \code{numObs} (Optional). Time series
+of the statsitic's value under maximum likelihood (ML) parameters.}
+
 \item{zoomDate}{String specifying a date for which to display a small
 histogram of the posterior sample of the statistic in the top right corner
 of the plot (Optional). If NULL, no such histogram is displayed.}
@@ -58,9 +61,6 @@ for \code{\link{polygon}}.}
 
 \item{borderCol}{Color for the borders of the HPD region. Passed to
 \code{col} argument \code{\link{plot}}.}
-
-\item{statML}{Numeric vector of length \code{numObs} (Optional). Time series
-of the statsitic's value under maximum likelihood (ML) parameters.}
 }
 \description{
 Plots the (100 * \code{alpha})% highest posterior density (HPD) boundaries of

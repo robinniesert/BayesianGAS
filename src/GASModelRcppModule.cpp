@@ -2,6 +2,7 @@
 #include "GASModel.h"
 #include "GASModelFactory.h"
 #include "BetaGenTEGARCH.h"
+#include "BetaTEGARCH.h"
 #include <Rcpp.h>
 using namespace Rcpp;
 
@@ -42,4 +43,13 @@ RCPP_MODULE(GASModel){
     .field("Upsilon", &BetaGenTEGARCH::Upsilon)
   ;
 
+  class_<BetaTEGARCH>("BetaTEGARCH")
+    .derives<GASModel>("GASModel")
+    .constructor()
+    .constructor<NumericVector>()
+    .constructor<double,double,double,double,double>()
+    .method("VolFilter", &BetaTEGARCH::VolFilter)
+    .field("Mu", &BetaTEGARCH::Mu)
+    .field("NuBar", &BetaTEGARCH::NuBar)
+  ;
 };

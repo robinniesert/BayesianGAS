@@ -1,4 +1,4 @@
-supportedModels <- c("BetaGenTEGARCH", "BetaTEGRACH")
+supportedModels <- c("BetaGenTEGARCH", "BetaTEGARCH")
 
 .GetModelStr <- function(model){
   if (is.character(model)) {
@@ -48,7 +48,7 @@ CreateModel <- function(model, params=NA){
 }
 
 Mode <- function(x) {
-  ux <- na.omit(unique(x))
+  ux <- stats::na.omit(unique(x))
   ux <- round(ux, 2)
   ux[which.max(tabulate(match(round(x, 2), ux)))]
 }

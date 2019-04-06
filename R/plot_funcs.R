@@ -31,7 +31,7 @@ PlotTraces <- function(samples, mcmcNames, parNames, iters=-(1:1000),
       c <- c + 1
       colName <- paste(mcmcName, parName, sep = " ")
       if (colName %in% colnames(samples)) {
-        plot.ts(
+        stats::plot.ts(
           samples[iters, colName],
           col = cols[c],
           axes = TRUE,
@@ -201,7 +201,7 @@ PlotACFs <- function(samples, mcmcNames, parNames, burn=1000, lags=50){
 #' @param ylab Y axis label passed to \code{\link{plot}}.
 #' @param statStr String to describe the statistic.
 #' @param obsStr String to describe the observation series.
-#' @param statML Numeric vector of length \code{numObs} (Optional). Time series
+#' @param statsML Numeric vector of length \code{numObs} (Optional). Time series
 #'  of the statsitic's value under maximum likelihood (ML) parameters.
 #' @param zoomDate String specifying a date for which to display a small
 #'  histogram of the posterior sample of the statistic in the top right corner
@@ -230,6 +230,7 @@ PlotHPDOverTime <- function(statDraws, observations, dates, startDate=NULL,
   hpd <- coda::HPDinterval(mcmcStats, prob = alpha)
   statsUb <- hpd[, 2]
   statsLb <- hpd[, 1]
+  numObs <- dim(statDraws)[2]
   statsMode <- numeric(numObs)
   for (i in 1:numObs) {
     statsMode[i] <- Mode(mcmcStats[, i])
@@ -321,8 +322,8 @@ PlotHPDOverTime <- function(statDraws, observations, dates, startDate=NULL,
     axis(side = 1, line = -0.1, tck = -0.03, mgp = c(3, .5, 0))
     axis(side = 2, line = -0.1, tck = -0.03, mgp = c(3, .5, 0))
 
-    Density <- density(x, adjust = 2)
-    lines(density(x), col = "green3")
+    Density <- stats::density(x, adjust = 2)
+    lines(stats::density(x), col = "green3")
     leg <- c(
       "Fitted density",
       paste(sprintf("%i", alpha * 100), "% HPD region", sep = "")

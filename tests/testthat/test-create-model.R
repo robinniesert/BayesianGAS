@@ -9,7 +9,11 @@ test_that("CreateModelFromStr function works",{
 
 test_that("CreateModel function works",{
   expect_is(CreateModel("BetaGenTEGARCH"), "Rcpp_GASModel")
+  expect_equal(CreateModel("BetaGenTEGARCH")$Name, "BetaGenTEGARCH")
   expect_is(CreateModel(new(BetaGenTEGARCH)), "Rcpp_BetaGenTEGARCH")
+  expect_is(CreateModel("BetaTEGARCH"), "Rcpp_GASModel")
+  expect_equal(CreateModel("BetaTEGARCH")$Name, "BetaTEGARCH")
+  expect_is(CreateModel(new(BetaTEGARCH)), "Rcpp_BetaTEGARCH")
   expect_error(CreateModel("not a model"), "Specified model is invalid.")
   expect_error(CreateModel(NULL), "Specified model is invalid.")
 

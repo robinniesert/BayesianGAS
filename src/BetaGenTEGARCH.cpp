@@ -69,7 +69,7 @@ double BetaGenTEGARCH::ScoreScale(double y, double f)
 double BetaGenTEGARCH::Score(double y, double f)
 {
   double nom = ::pow(::fabs(y - Mu) * ::exp(-f), Upsilon) * EtaBar;
-  return ((1 / EtaBar) + 1) * ( nom / (nom + 1) ) - 1;
+  return ((1 / EtaBar) + 1) * (nom / (nom + 1)) - 1;
 }
 
 double BetaGenTEGARCH::LogConstant()
