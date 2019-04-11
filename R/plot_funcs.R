@@ -218,6 +218,9 @@ PlotACFs <- function(samples, mcmcNames, parNames, burn=1000, lags=50){
 #'  for \code{\link{polygon}}.
 #' @param borderCol Color for the borders of the HPD region. Passed to
 #'  \code{col} argument \code{\link{plot}}.
+#' @param newPlot Boolean indicating of plot should be placed in a new figure.
+#' @param ylim Passed to code{ylim} argument \code{\link{plot}}.
+#' @param dateAxisStep Date axis tick spacing in time units.
 #'
 #' @export
 PlotHPDOverTime <- function(statDraws, observations, dates, startDate=NULL,
@@ -225,7 +228,8 @@ PlotHPDOverTime <- function(statDraws, observations, dates, startDate=NULL,
                             alpha=0.99, ylab=NULL, statStr="", obsStr="Obs",
                             statsML=NULL, zoomDate=NULL, xy1=NULL, xy2=NULL,
                             modeCol="red", MLCol="blue", fillCol="pink1",
-                            borderCol="red2"){
+                            borderCol="red2", newPlot = TRUE, ylim = c(0, 100),
+                            dateAxisStep = "2 months"){
   mcmcStats <- coda::mcmc(statDraws)
   hpd <- coda::HPDinterval(mcmcStats, prob = alpha)
   statsUb <- hpd[, 2]
@@ -236,11 +240,13 @@ PlotHPDOverTime <- function(statDraws, observations, dates, startDate=NULL,
     statsMode[i] <- Mode(mcmcStats[, i])
   }
 
+  if (is.null(startDate)) startDate <- dates[1]
+  if (is.null(endDate)) endDate <- dates[length(dates)]
   startIdx <- which(dates == startDate)
   endIdx <- which(dates == endDate)
   idxs <- (startIdx:endIdx)
 
-  par(mfrow = c(1, 1), mar = c(5, 5, 4, 4))
+  if (newPlot) par(mfrow = c(1, 1), mar = c(5, 5, 4, 4))
   plot(
     x = dates[idxs],
     observations[idxs],
@@ -249,9 +255,9 @@ PlotHPDOverTime <- function(statDraws, observations, dates, startDate=NULL,
     xlab = "Years",
     ylab = ylab,
     lab = c(10, 5, 7),
-    ylim = c(0, 100)
+    ylim = ylim
   )
-  axis.Date(1, at = seq(min(dates[idxs]), max(dates[idxs]), by = "2 mon"),
+  axis.Date(1, at = seq(min(dates[idxs]), max(dates[idxs]), by = dateAxisStep),
             format = "%Y-%m")
   polygon(
     c(dates[idxs], rev(dates[idxs])),

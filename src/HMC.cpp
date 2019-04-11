@@ -2,26 +2,22 @@
 #include <RcppArmadillo.h>
 #include "GASModelFactory.h"
 #include "PriorStack.h"
+#include "utils.h"
 using namespace Rcpp;
-using namespace arma;
 
 // [[plugins(cpp11)]]
 
-NumericVector armaToNumVec(vec x){
-  return as<NumericVector>(wrap(x));
-}
-
-vec HMCdraw(vec currentParams, vec currentMomentum,
-    std::function<double(vec)> potentialEnergy,
-    std::function<vec(vec)> gradPotentialEnergy,
-    double stepsize, int leapFrogSteps, mat &mass, mat &invMass, vec &lb,
-    vec &ub, int &accept, ivec &hits, bool &stuck){
+arma::vec HMCdraw(arma::vec currentParams, arma::vec currentMomentum,
+    std::function<double(arma::vec)> potentialEnergy,
+    std::function<arma::vec(arma::vec)> gradPotentialEnergy,
+    double stepsize, int leapFrogSteps, arma::mat &mass, arma::mat &invMass,
+    arma::vec &lb, arma::vec &ub, int &accept, arma::ivec &hits, bool &stuck){
 
   int l;
   int count = 0;
   bool constrained;
-  vec params = currentParams;
-  vec momentum = currentMomentum;
+  arma::vec params = currentParams;
+  arma::vec momentum = currentMomentum;
 
   // half step momentum at start
   momentum -= .5 * stepsize * gradPotentialEnergy(params);
@@ -37,7 +33,7 @@ vec HMCdraw(vec currentParams, vec currentMomentum,
     while (constrained){
       constrained = false;
       if (any(params <= lb)){
-        uvec lbCrossIds = find(params <= lb);
+        arma::uvec lbCrossIds = find(params <= lb);
         momentum.elem(lbCrossIds) *= - 1.;
         params.elem(lbCrossIds) = (lb.elem(lbCrossIds) +
           (lb.elem(lbCrossIds) - params.elem(lbCrossIds)));
@@ -46,7 +42,7 @@ vec HMCdraw(vec currentParams, vec currentMomentum,
         constrained = true;
       }
       if (any(params >= ub)){
-        uvec ubCrossIds = find(params >= ub);
+        arma::uvec ubCrossIds = find(params >= ub);
         momentum.elem(ubCrossIds) *= - 1.;
         params.elem(ubCrossIds) = (ub.elem(ubCrossIds) -
           (params.elem(ubCrossIds) - ub.elem(ubCrossIds)));
@@ -90,7 +86,7 @@ vec HMCdraw(vec currentParams, vec currentMomentum,
   double hamProp = potentialEnergy(params) + kineticEnergyProp;
 
   // reject if NAs produced or got stuck
-  if (hamProp != hamProp || stuck){
+  if (isNaDouble(hamProp) || stuck){
     warning("error: Hamiltonian NaN or HMC stuck between bounds.");
     params = currentParams;
   }else{
@@ -106,10 +102,10 @@ vec HMCdraw(vec currentParams, vec currentMomentum,
   return params;
 }
 
-mat HMC(String modelStr, PriorStack priorStack, NumericMatrix y,
-    double f1, NumericVector initParams, int iter, mat mass, double stepsize,
-    double integrationTime, vec lb, vec ub, double stepReductionFactor,
-    bool verbose, int printIter){
+arma::mat HMC(String modelStr, PriorStack priorStack, NumericMatrix y,
+    RObject f1, NumericVector initParams, int iter, arma::mat mass,
+    double stepsize, double integrationTime, arma::vec lb, arma::vec ub,
+    double stepReductionFactor, bool verbose, int printIter){
   int i;
   int accept = 0;
   int stuckCount = 0;
@@ -118,26 +114,27 @@ mat HMC(String modelStr, PriorStack priorStack, NumericMatrix y,
 
   GASModel *model = GASModelFactory::BuildGASModelWParWPrior(
     modelStr, initParams, priorStack);
-  ivec hits = zeros<ivec>(model -> NumParams);
-  mat draws(model -> NumParams, iter, fill::zeros);
-  draws.col(0) = as<vec>(model -> Params);
+  arma::ivec hits = arma::zeros<arma::ivec>(model -> NumParams);
+  arma::mat draws(model -> NumParams, iter, arma::fill::zeros);
+  draws.col(0) = as<arma::vec>(model -> Params);
 
-  mat momenta = mvnrnd(zeros(model -> NumParams), mass, iter - 1);
-  mat invMass = inv(mass);
+  arma::mat momenta = mvnrnd(arma::zeros(model -> NumParams), mass, iter - 1);
+  arma::mat invMass = inv(mass);
 
-  auto potentialEnergy = [&](vec params){
+  auto potentialEnergy = [&](arma::vec params){
     return -model -> LogPosteriorWPar(armaToNumVec(params), y, f1);
   };
-  auto gradPotentialEnergy = [&](vec params){
-    NumericVector tmp = - model -> GradLogPosteriorWPar(armaToNumVec(params), y, f1);
-    return as<vec>(tmp);
+  auto gradPotentialEnergy = [&](arma::vec params){
+    NumericVector tmp = - model -> GradLogPosteriorWPar(armaToNumVec(params),
+                                                        y, f1);
+    return as<arma::vec>(tmp);
   };
 
   for(i = 1; i < iter; i++){
     // perform one draw of HMC
     draws.col(i) = HMCdraw(draws.col(i - 1), momenta.col(i - 1),
-              potentialEnergy, gradPotentialEnergy, stepsize, leapFrogSteps, mass,
-              invMass, lb, ub, accept, hits, stuck);
+        potentialEnergy, gradPotentialEnergy, stepsize, leapFrogSteps, mass,
+        invMass, lb, ub, accept, hits, stuck);
 
     // check if stuck
     if(stuck){
@@ -150,7 +147,7 @@ mat HMC(String modelStr, PriorStack priorStack, NumericMatrix y,
       if (stuckCount >= 5)
       {
         stop("HMC is not working."
-               " Try changing settings, but posterior might be ill-condidtioned");
+             " Try changing settings, but posterior might be ill-condidtioned");
       }
     }
 

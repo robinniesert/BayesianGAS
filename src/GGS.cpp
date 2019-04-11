@@ -4,7 +4,7 @@
 using namespace Rcpp;
 
 NumericMatrix GGS(String modelStr, PriorStack priorStack, NumericMatrix y,
-                  double f1, NumericVector initParams, NumericMatrix grid,
+                  RObject f1, NumericVector initParams, NumericMatrix grid,
                   int iter, double logOffset, bool verbose, int printIter){
   int i;
   int j;

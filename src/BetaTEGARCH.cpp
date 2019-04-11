@@ -24,8 +24,8 @@ BetaTEGARCH::BetaTEGARCH(NumericVector initParams, PriorStack priorStack)
   PriorStack_ = priorStack;
 }
 
-BetaTEGARCH::BetaTEGARCH(double initMu, double initOmega, double initA,
-  double initB, double initNuBar) : BetaTEGARCH(
+BetaTEGARCH::BetaTEGARCH(double initOmega, double initA, double initB,
+    double initMu, double initNuBar) : BetaTEGARCH(
       NumericVector::create(initMu, initOmega, initA, initB, initNuBar))
 {
 }
@@ -46,25 +46,25 @@ bool BetaTEGARCH::ParamsValid()
   return (::fabs(B) <= 1. || NuBar >= 0. || NuBar <= 0.5);
 }
 
-double BetaTEGARCH::UpdateLogL(double y, double f)
+double BetaTEGARCH::UpdateLogL(double yt, double ft)
 {
-  return -(f + (((1 / NuBar) + 1) / 2) *
-           log( 1 + NuBar * ::pow(fabs((y - Mu) * ::exp(-f)), 2)));
+  return -(ft + (((1 / NuBar) + 1) / 2) *
+           log( 1 + NuBar * ::pow(fabs((yt - Mu) * ::exp(-ft)), 2)));
 }
 
-double BetaTEGARCH::ScaledScore(double y, double f)
+double BetaTEGARCH::ScaledScore(double yt, double ft)
 {
-  return GASModel::ScaledScore(y, f);
+  return UniGASModel::ScaledScore(yt, ft);
 }
 
-double BetaTEGARCH::ScoreScale(double y, double f)
+double BetaTEGARCH::ScoreScale(double yt, double ft)
 {
-  return GASModel::ScoreScale(y, f);
+  return UniGASModel::ScoreScale(yt, ft);
 }
 
-double BetaTEGARCH::Score(double y, double f)
+double BetaTEGARCH::Score(double yt, double ft)
 {
-  double nom = ::pow(::fabs(y - Mu) * ::exp(-f), 2) * NuBar;
+  double nom = ::pow(::fabs(yt - Mu) * ::exp(-ft), 2) * NuBar;
   return ((1 / NuBar) + 1) * (nom / (nom + 1)) - 1;
 }
 
@@ -75,10 +75,10 @@ double BetaTEGARCH::LogConstant()
   return ::log(K);
 }
 
-void BetaTEGARCH::CalculateScaledScore(double y, double f, double &s,
-                                       double &score)
+void BetaTEGARCH::CalculateScaledScore(double yt, double ft, double &st,
+                                       double &score_t)
 {
-  GASModel::CalculateScaledScore(y, f, s, score);
+  UniGASModel::CalculateScaledScore(yt, ft, st, score_t);
 }
 
 void BetaTEGARCH::CalculateDerrLogConstant(NumericVector &dLogConst)
@@ -89,36 +89,36 @@ void BetaTEGARCH::CalculateDerrLogConstant(NumericVector &dLogConst)
   );
 }
 
-void BetaTEGARCH::UpdateGradLogLFixedF(double y, double f, NumericVector &grad)
+void BetaTEGARCH::UpdateGradLogLFixedF(double yt, double ft, NumericVector &grad)
 {
-  double deMeanedY = y - Mu;
-  double nom = ::pow(::fabs(deMeanedY) * ::exp(-f), 2.0) * NuBar;
+  double deMeanedY = yt - Mu;
+  double nom = ::pow(::fabs(deMeanedY) * ::exp(-ft), 2.0) * NuBar;
   double b = nom / (nom + 1);
 
   grad[3] += ((1 / NuBar) + 1) * b / deMeanedY;
   grad[4] += ((- ::log(1 - b) - (NuBar + 1) * b) / (2 * NuBar * NuBar));
 }
 
-void BetaTEGARCH::CalculateDerrScaledScore(double y, double f, NumericVector df,
-                                           NumericVector &ds, double &dsf)
+void BetaTEGARCH::CalculateDerrScaledScore(double yt, double ft,
+    NumericVector dft, NumericVector &dst, double &dsft)
 {
   double dsb = (NuBar + 1) / NuBar;
-  double deMeanedY = y - Mu;
-  double nom = ::pow(::fabs(deMeanedY) * ::exp(-f), 2) * NuBar;
+  double deMeanedY = yt - Mu;
+  double nom = ::pow(::fabs(deMeanedY) * ::exp(-ft), 2) * NuBar;
   double b = nom / (nom + 1);
   double bOneMinB = b * (1 - b);
 
   double dbf = - 2 * bOneMinB;
-  double dbMu = dbf * ((1 / deMeanedY) + df[3]);
-  double dbNuB = (bOneMinB / NuBar) + dbf * df[4];
+  double dbMu = dbf * ((1 / deMeanedY) + dft[3]);
+  double dbNuB = (bOneMinB / NuBar) + dbf * dft[4];
 
   // compute derrivatives w.r.t s at time t
-  dsf = dsb * dbf;
-  ds[3] = dsb * dbMu;
-  ds[4] = dsb * dbNuB - b / (NuBar * NuBar);
+  dsft = dsb * dbf;
+  dst[3] = dsb * dbMu;
+  dst[4] = dsb * dbNuB - b / (NuBar * NuBar);
 }
 
-NumericVector BetaTEGARCH::VolFilter(NumericVector y, double f1)
+NumericVector BetaTEGARCH::VolFilter(NumericVector y, RObject f1)
 {
   NumericVector scales = Filter(y, f1);
   NumericVector vols = exp(scales) / ::sqrt(1 - 2 * NuBar);

@@ -1,7 +1,7 @@
 #ifndef Priors_h
 #define Priors_h 1
 
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 using namespace Rcpp;
 
 class Prior{
@@ -33,5 +33,35 @@ private:
   double upperBound_;
 };
 
+
+class Normal: public Prior{
+public:
+  Normal();
+  Normal(NumericVector priorParams);
+
+  virtual void SetParams(NumericVector priorParams);
+  virtual double LogVal(NumericVector params);
+  virtual NumericVector GradLogVal(NumericVector params);
+
+private:
+  double mu_;
+  double sigma_;
+};
+
+class TruncatedNormal: public Prior{
+public:
+  TruncatedNormal();
+  TruncatedNormal(NumericVector priorParams);
+
+  virtual void SetParams(NumericVector priorParams);
+  virtual double LogVal(NumericVector params);
+  virtual NumericVector GradLogVal(NumericVector params);
+
+private:
+  double mu_;
+  double sigma_;
+  double lowerBound_;
+  double upperBound_;
+};
 
 #endif

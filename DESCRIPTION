@@ -8,15 +8,19 @@ Description: Package contains source code, data and analysis presented in the ma
 Depends: R (>= 3.5.3)
 License: None
 Imports: methods, Rcpp (>= 1.0.1)
-LinkingTo: RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo
 Encoding: UTF-8
 LazyData: true
 Suggests:
     AdMit,
-    coda, 
+    coda,
+    graphics,
     knitr,
+    lubridate,
     moments,
     rmarkdown,
-    testthat,
+    stats,
+    testthat
 VignetteBuilder: knitr
 SystemRequirements: C++11
+RoxygenNote: 6.1.1

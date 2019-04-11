@@ -1,65 +1,500 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+title: "Model Comparisons: Dynamic Pooled Marked Point Process Models"
+author: "Robin Niesert"
+date: "April 2nd, 2019"
+output: 
+  rmarkdown::html_vignette:
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Model Comparisons: Dynamic Pooled Marked Point Process Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{}
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.show = 'hold',
+  fig.width = 8,
+  fig.height = 7,
+  fig.align = 'center'
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+# Model Comparisons: Dynamic Pooled Marked Point Process Models
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+This document contains the R code to reproduce the plots and statistical analysis presented in section 4.2 of 
+> Niesert, R. "Bayesian Inference for Generalized Autoregressive Score Models." (2017).
 
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r lib}
+library(BayesianGAS)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r seed_and_constants}
+set.seed(100)
+kTransitionTypes <- c("IGtoSIG", "IGtoD", "SIGtoIG", "SIGtoD")
+kScalings <- c(0., -0.5, -1.0)
+kNumFactorSpecs <- c(1, 2, 3)
+kNumParamsVec <- c(9, 10, 12)
+kNumTransitions <- 4
 ```
 
-Also a quote using `>`:
+## Load data 
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r load_data}
+data("CreditRatings", package = "BayesianGAS")
+dates <- unique(transitionData$datadate)
+colnames(transitions) <- kTransitionTypes
+colnames(possibleTranstions) <- colnames(transitions)
+y <- cbind(transitions, diffTau, possibleTranstions)
+```
+
+### Plot Transitions
+```{r, fig.cap = "Transitions"}
+par(mfcol = c(2, 2))
+for (tt in kTransitionTypes) {
+  leg <- paste(tt, "counts")
+  plot(dates, transitions[,tt], type = "l", xaxt = "n", xlab = "Years", 
+       ylab = "Intensity")
+  legend("topleft", legend = leg, bty = "n", lty = 1)
+  axis.Date(1, at = seq(min(dates), max(dates), by = "1 years"), format = "%Y")
+}
+```
+### Set data attributes
+```{r set_data_attr}
+numObs <- dim(y)[1]
+```
+
+## Maximum Likelihood (ML) estimation 
+
+```{r ML_estimation}
+initParamVecs <- list(
+  c(A = 0.05, B = 0.95, C = c(0.5, 0.5, -0.5) , w = c(-5, -10, -5, -5)),
+  c(A = rep(0.05, 2), B = rep(0.95, 2), C = rep(0.5, 2) , w = c(-5, -10, -5, -5)),
+  c(A = rep(0.025, 3), B = rep(0.95, 3), C = rep(0.5, 2) , w = c(-5, -10, -5, -5))
+)
+parScaleVecs <- list(
+  c(A = 0.01, B = 0.01, C = rep(0.05, 3) , w = rep(0.2, 4)),
+  c(A = rep(0.01, 2), B = rep(0.02, 2), C = rep(0.05, 2) , w = rep(0.2, 4)),
+  c(A = rep(0.01, 3), B = rep(0.01, 3), C = rep(0.05, 2) , w = rep(0.2, 4))
+)
+lowerBoundVecs <- list(
+  c(A = -Inf, B = -1, C = rep(-Inf, 3) , w = rep(-Inf, 4)),
+  c(A = rep(-Inf, 2), B = rep(-1, 2), C = rep(-Inf, 2), w = rep(-Inf, 4)),
+  c(A = rep(-Inf, 3), B = rep(-1, 3), C = rep(-Inf, 2), w = rep(-Inf, 4))
+)
+upperBoundVecs <- list(
+  c(A = Inf, B = 0.99, C = rep(Inf, 3) , w = rep(Inf, 4)),
+  c(A = rep(Inf, 2), B = rep(0.99, 2), C = rep(Inf, 2), w = rep(Inf, 4)),
+  c(A = rep(Inf, 3), B = rep(0.99, 3), C = rep(Inf, 2), w = rep(Inf, 4))
+)
+f1s <- list(0, rep(0, 2), rep(0, 3))
+modelsML <- list()
+for (i in 1:3) {
+  numF <- kNumFactorSpecs[i]
+  initParams <- initParamVecs[[i]]
+  parScales <- parScaleVecs[[i]]
+  lb <- lowerBoundVecs[[i]]
+  ub <- upperBoundVecs[[i]]
+  f1 <- f1s[[i]]
+  for (s in kScalings) {
+    dpmp <- new(DPMP, numF, s)
+    cat("Fitting model: ", dpmp$Name, sprintf("\n"))
+    dpmp <- FitML(
+      model = dpmp,
+      initParams = initParams,
+      y = y,
+      f1 = f1,
+      method = "L-BFGS-B",
+      control = list(
+        maxit = 1e5, 
+        parscale = parScales
+      ),
+      hessian = TRUE,
+      verbose = TRUE,
+      lower = lb,
+      upper = ub
+    )
+    modelsML <- c(modelsML, dpmp)
+    names(modelsML) <- c(names(modelsML)[1:length(modelsML) - 1], dpmp$Name)
+    cat(sprintf("\n"))
+  }
+}
+```
+
+## MCMC using RWMH
+
+I deviate slightly here from the analysis presented in the thesis, by thinning the posterior sample by a factor of 10 (i.e. I keep only 1 out of 10 draws). This is done to reduce memory usage.
+
+```{r set_iters_and_priors}
+iter <- 4e5
+thinning <- 10
+numDraws <- floor(iter / thinning)
+warmUpRounds <- c(3, 5, 6)
+priorStacks <- list(
+  new(
+    PriorStack,
+    c("Normal", "TruncatedNormal", rep("Normal", 7)),
+    list(
+      c(0.05, 1),
+      c(0.95, 1, -1, 1),
+      c(0.5, 5),
+      c(0.5, 5),
+      c(-0.5, 5),
+      c(-5, 5),
+      c(-10, 5),
+      c(-5, 5),
+      c(-5, 5)
+    )
+  ),
+  new(
+    PriorStack,
+    c(rep("Normal", 2), rep("TruncatedNormal", 2), rep("Normal", 6)),
+    list(
+      c(0.05, 1),
+      c(0.05, 1),
+      c(0.95, 1, -1, 1),
+      c(0.95, 1, -1, 1),
+      c(0.5, 5),
+      c(0.5, 5),
+      c(-5, 5),
+      c(-10, 5),
+      c(-5, 5),
+      c(-5, 5)
+    )
+  ),
+  new(
+    PriorStack,
+    c(rep("Normal", 3), rep("TruncatedNormal", 3), rep("Normal", 6)),
+    list(
+      c(0.05, 1),
+      c(0.05, 1),
+      c(0.05, 1),
+      c(0.95, 1, -1, 1),
+      c(0.95, 1, -1, 1),
+      c(0.95, 1, -1, 1),
+      c(0.5, 5),
+      c(0.5, 5),
+      c(-5, 5),
+      c(-10, 5),
+      c(-5, 5),
+      c(-5, 5)
+    )
+  )
+)
+```
+
+### Run RWMH
+```{r run_RWMH, warning = FALSE, collapse = FALSE}
+drawsRWMHLst <- list()
+for (i in 1:3) {
+  numF <- kNumFactorSpecs[i]
+  initParams <- initParamVecs[[i]]
+  f1 <- f1s[[i]]
+  priorStack <- priorStacks[[i]]
+  numParams <- kNumParamsVec[i]
+  for (s in kScalings) {
+    if ((s  == -1) && (numF > 1)) {
+      stepsize1 <- 0.0025
+    }else{
+      stepsize1 <- 0.006
+    }
+    dpmp <- new(DPMP, numF, s)
+    cat("Running RWMH for model: ", dpmp$Name, sprintf("\n"))
+    startTime <- Sys.time()
+    cat(sprintf("Warm up 1 \n"))
+    warmUpRWMH <- RWMH(
+      dpmp$Name,
+      priorStack,
+      y = y,
+      f1 = f1,
+      initParams = initParams,
+      sigma = diag(numParams),
+      iter = 1e4,
+      stepsize = stepsize1,
+      printIter = 1e5,
+      thinning = thinning
+    )
+    for (round in 2:max(2, warmUpRounds[i])) {
+      cat(sprintf("Warm up %i \n", round))
+      warmUpRWMH <- RWMH(
+        dpmp$Name,
+        priorStack,
+        y = y,
+        f1 = f1,
+        initParams = initParams,
+        sigma = cov(warmUpRWMH),
+        iter = 1e4,
+        stepsize = .4,
+        printIter = 1e5,
+        thinning = thinning
+      )
+    }
+    drawsRWMH <- RWMH(
+      dpmp$Name,
+      priorStack,
+      y = y,
+      f1 = f1,
+      initParams = initParams,
+      sigma = cov(warmUpRWMH),
+      iter = iter,
+      stepsize = .4,
+      printIter = 1e5,
+      thinning = thinning
+    )
+    endTime <- Sys.time()
+    timeRWMH <- difftime(endTime, startTime, units = 'secs')
+    cat("RWMH Time: ", timeRWMH, sprintf(" seconds\n"))
+    colnames(drawsRWMH) <- names(initParams)
+    drawsRWMHLst <- append(drawsRWMHLst, list(drawsRWMH))
+    names(drawsRWMHLst) <- 
+      c(names(drawsRWMHLst)[1:length(drawsRWMHLst) - 1], dpmp$Name)
+    
+    ESSs <- coda::effectiveSize(drawsRWMH)
+    ESSs <- t(data.frame(ESSs))
+    colnames(ESSs) <- names(initParams)
+    print(round(ESSs, 1))
+    cat(sprintf("\n"))
+  }
+}
+```
+## Model comparisons
+
+
+```{r}
+IC <- function(logl, npar, k = log(npar)){
+  IC <- -2 * logl + k * npar
+  return(IC)
+}
+modelScores <- data.frame(matrix(
+  0, 
+  nrow = 9, 
+  ncol = 3, 
+  dimnames = list(names(modelsML), c("MarginalLikelihood", "LogLikelihood", "BIC"))
+))
+burn <- 1000
+```
+
+### Compute marginals and Bayesian Information criteria (BICs)
+```{r, error = TRUE, results = 'hide'}
+upperBoundVecs <- list(
+  c(A = Inf, B = 1., C = rep(Inf, 3) , w = rep(Inf, 4)),
+  c(A = rep(Inf, 2), B = rep(1., 2), C = rep(Inf, 2), w = rep(Inf, 4)),
+  c(A = rep(Inf, 3), B = rep(1., 3), C = rep(Inf, 2), w = rep(Inf, 4))
+)
+marginalsLst <- list()
+logLikList <- list()
+for (i in 1:3) {
+  numF <- kNumFactorSpecs[i]
+  initParams <- initParamVecs[[i]]
+  f1 <- f1s[[i]]
+  priorStack <- priorStacks[[i]]
+  numParams <- kNumParamsVec[i]
+  lb <- lowerBoundVecs[[i]]
+  ub <- upperBoundVecs[[i]]
+  for (s in kScalings) {
+    dpmp <- new(DPMP, initParams, priorStack, numF, s)
+    logPosterior <- function(pars, data, printErrors = FALSE) {
+      out <- tryCatch(
+        {dpmp$LogPosteriorLWPar(pars, y, f1)},
+        error = function(cond) {
+          if (printErrors) message(cond)
+          return(-Inf)
+        }
+      )
+      return(out)
+    }
+    marginal <- bridgesampling::bridge_sampler(
+      drawsRWMHLst[[dpmp$Name]][-(1:burn), ], 
+      log_posterior = logPosterior,
+      data = NULL,
+      method = "warp3",
+      lb = lb,
+      ub = ub
+    )
+    modelScores[dpmp$Name, "MarginalLikelihood"] <- marginal$logml
+    modelScores[dpmp$Name, "LogLikelihood"] <- modelsML[[dpmp$Name]]$LogLValML
+    modelScores[dpmp$Name, "BIC"] <- IC(modelsML[[dpmp$Name]]$LogLValML, numParams)
+  }
+}
+```
+
+```{r, echo = FALSE}
+knitr::kable(modelScores, caption = "Marginals, log-likelihoods and BICS")
+```
+
+### Compute Bayes Factors (BFs)
+```{r}
+marginals <- modelScores["MarginalLikelihood"]
+bf1H1I <- bridgesampling::bayes_factor(
+  marginals["DPMP1-H", ], marginals["DPMP1-I", ], TRUE)
+bf1Inv1H <- bridgesampling::bayes_factor(
+  marginals["DPMP1-Inv", ], marginals["DPMP1-H", ], TRUE)
+bf2H2I <- bridgesampling::bayes_factor(
+  marginals["DPMP2-H", ], marginals["DPMP2-I", ], TRUE)
+bf2Inv2H <- bridgesampling::bayes_factor(
+  marginals["DPMP2-Inv", ], marginals["DPMP2-H", ], TRUE)
+bf3H3I <- bridgesampling::bayes_factor(
+  marginals["DPMP3-H", ], marginals["DPMP3-I", ], TRUE)
+bf3Inv3H <- bridgesampling::bayes_factor(
+  marginals["DPMP3-Inv", ], marginals["DPMP3-H", ], TRUE)
+bf2I1I <- bridgesampling::bayes_factor(
+  marginals["DPMP2-I", ], marginals["DPMP1-I", ], TRUE)
+bf2H1H <- bridgesampling::bayes_factor(
+  marginals["DPMP2-H", ], marginals["DPMP1-H", ], TRUE)
+bf2Inv1Inv <- bridgesampling::bayes_factor(
+  marginals["DPMP2-Inv", ], marginals["DPMP1-Inv", ], TRUE)
+bf3I1I <- bridgesampling::bayes_factor(
+  marginals["DPMP3-I", ], marginals["DPMP1-I", ], TRUE)
+bf3H1H <- bridgesampling::bayes_factor(
+  marginals["DPMP3-H", ], marginals["DPMP1-H", ], TRUE)
+bf3Inv1Inv <- bridgesampling::bayes_factor(
+  marginals["DPMP3-Inv", ], marginals["DPMP1-Inv", ], TRUE)
+```
+
+1-H | 1-I : `r bf1H1I$bf`  
+1-Inv | 1-H : `r bf1Inv1H$bf`  
+2-H | 2-I : `r bf2H2I$bf`  
+2-Inv | 2-H : `r bf2Inv2H$bf`  
+3-H | 3-I : `r bf3H3I$bf`  
+3-Inv | 3-H : `r bf3Inv3H$bf`  
+2-I | 1-I : `r bf2I1I$bf`  
+2-H | 1-H : `r bf2H1H$bf`  
+2-Inv | 1-Inv : `r bf2Inv1Inv$bf`  
+3-I | 1-I : `r bf3I1I$bf`  
+3-H | 1-H : `r bf3H1H$bf`  
+3-Inv | 1-Inv : `r bf3Inv1Inv$bf`  
+
+## Some Parameter Statistics
+```{r, results = "asis"}
+selectedModels <- c("DPMP1-Inv", "DPMP2-Inv", "DPMP3-Inv")
+for (model in selectedModels) {
+  summary_ <- summary(coda::mcmc(drawsRWMHLst[[model]]))$statistics
+  print(knitr::kable(summary_, caption = model))
+}
+```
+
+## Plots
+
+### Posterior of intensity
+```{r}
+intensityDraws <- 
+  array(0, dim = c(numDraws - burn, numObs, kNumTransitions))
+meanLogIntensitiesLst <- list()
+for (i in c(1, 3)) {
+  numF <- kNumFactorSpecs[i]
+  f1 <- f1s[[i]]
+  for (s in kScalings[c(1,3)]) {
+    dpmp <- new(DPMP, numF, s)
+    for (i in 1:(numDraws - burn)) {
+      dpmp$SetParams(as.vector(drawsRWMHLst[[dpmp$Name]][burn + i,]))
+      intensityDraws[i, , ] <- dpmp$IntensityFilter(y, f1, TRUE)
+      if ((i > 0) && ((i %% 1e4) == 0)) {
+        cat(sprintf("iter %i\n", i));
+      }
+    }
+    meanLogIntensities <- colMeans(intensityDraws)
+    colnames(meanLogIntensities) <- kTransitionTypes
+    meanLogIntensitiesLst <- 
+      append(meanLogIntensitiesLst, list(meanLogIntensities))
+    names(meanLogIntensitiesLst) <- c(
+      names(meanLogIntensitiesLst)[1:length(meanLogIntensitiesLst) - 1], dpmp$Name)
+  }
+}
+intensityDraws <- exp(intensityDraws)
+```
+
+### Mean log intensity plots
+```{r, fig.height = 8, fig.width = 9, fig.cap = "Mean Log Intensities"}
+selectedModels <- c("DPMP1-I", "DPMP3-I", "DPMP1-Inv", "DPMP3-Inv")
+labY <- c(
+  expression("Log intensity" ~ IG %->% SIG), 
+  expression("Log intensity" ~ IG %->% D), 
+  expression("Log intensity" ~ SIG %->% IG), 
+  expression("Log intensity" ~ SIG %->% D)
+)
+names(labY) <- kTransitionTypes
+legMeans <- c(
+  "1 factor Identity scaling",
+  "3 factor Identity scaling",
+  "1 factor Inverse FI scaling",
+  "3 factor Inverse FI scaling"
+)
+names(legMeans) <- selectedModels
+yLims <- list(c(-6.5, -4), c(-12.5, -8), c(-6.5, -5.4), c(-9, -2.9))
+names(yLims) <- kTransitionTypes
+par(mfcol = c(2, 2))
+for (tt in kTransitionTypes) {
+  for (model in selectedModels) {
+    if (grepl("3", model)) lty = 3 else lty = 1
+    if (grepl("Inv", model)) col = "blue" else col = "red"
+    if (model == selectedModels[1]) {
+      plot(dates, meanLogIntensitiesLst[[model]][,tt], type = "l", xaxt = "n", 
+           xlab = "Years",  ylab = labY[tt], lty = lty, ylim = yLims[[tt]],
+           col = col)
+    }else{
+      lines(dates, meanLogIntensitiesLst[[model]][,tt], lty = lty, col = col)
+    }
+    axis.Date(1, at = seq(min(dates), max(dates), by = "1 years"), format = "%Y")
+  }
+  legend("topleft", bty = "n", col = c("red", "red", "blue", "blue"), 
+         lty=c(1, 3, 1, 3), legend = legMeans)
+}
+```
+
+
+### Joint distribution plots
+```{r, fig.height = 8, fig.width = 5.5}
+selectedDraws <- drawsRWMHLst[["DPMP3-Inv"]][-(1:burn), ]
+par(mfrow = c(2, 1), mar = c(4.2, 4.2, 1, 2))
+plot(
+  selectedDraws[, "B2"],
+  selectedDraws[, "A2"],
+  cex = 0.2,
+  cex.axis = 1,
+  xlab = expression(b[2]),
+  ylab = expression(a[2])
+)
+abline(h = coda::HPDinterval(coda::mcmc(selectedDraws[, "A2"])), col = "red", 
+       lty = 2)
+leg <- expression("95% HPD bounds for" ~ a[2])
+legend("topleft", legend = leg, col = "red", lty = 2,  bty = "n")
+
+ix <- which((selectedDraws[, "C1"] <= 0) & (selectedDraws[, "C2"] <= 0))
+plot(
+  selectedDraws[, "C1"],
+  selectedDraws[, "C2"],
+  cex = 0.2,
+  cex.axis = 1,
+  xlab = expression(Z[1]),
+  ylab = expression(Z[2])
+)
+lines(c(-5, 0), c(0, 0), lty = 2, lwd = 1)
+lines(c(0, 0), c(-2, 0), lty = 2, lwd = 1)
+points(selectedDraws[, "C1"][ix], selectedDraws[, "C2"][ix], col = "red",
+       cex = 0.2, pch = 19)
+```
+
+### Highest Posterior Density (HPD) intensity plots
+```{r, fig.height = 8, fig.width = 9, fig.cap = "HPD plots"}
+par(mfcol = c(2, 2))
+ttIdx <- 0
+for (tt in kTransitionTypes) {
+  ttIdx <- ttIdx + 1
+  PlotHPDOverTime(
+    intensityDraws[, , ttIdx] * max(transitionData$nummonth),
+    transitions[, tt],
+    dates,
+    ylab = "Intensity",
+    statStr = "Intensity",
+    obsStr = paste(tt, "counts"),
+    modeCol = rgb(0,0,1,1), 
+    fillCol = rgb(0,0,1,1/4),
+    borderCol = rgb(0,0,1,1/2),
+    newPlot = FALSE,
+    ylim = NULL,
+    dateAxisStep = "1 year"
+  )
+}
+```

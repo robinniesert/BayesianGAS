@@ -14,6 +14,11 @@ test_that("CreateModel function works",{
   expect_is(CreateModel("BetaTEGARCH"), "Rcpp_GASModel")
   expect_equal(CreateModel("BetaTEGARCH")$Name, "BetaTEGARCH")
   expect_is(CreateModel(new(BetaTEGARCH)), "Rcpp_BetaTEGARCH")
+  expect_is(CreateModel(new(DPMP)), "Rcpp_DPMP")
+  expect_equal(CreateModel(new(DPMP))$Name, "DPMP1-I")
+  expect_equal(CreateModel("DPMP3-Inv")$Name, "DPMP3-Inv")
+  expect_error(CreateModel("DPMP1-I", params = rep(0, 10)),
+               "Supplied number of parameters incorrect for number of factors.")
   expect_error(CreateModel("not a model"), "Specified model is invalid.")
   expect_error(CreateModel(NULL), "Specified model is invalid.")
 

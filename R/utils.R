@@ -1,4 +1,17 @@
-supportedModels <- c("BetaGenTEGARCH", "BetaTEGARCH")
+supportedModels <- c(
+  "BetaGenTEGARCH",
+  "BetaTEGARCH",
+  "DPMP",
+  "DPMP1-I",
+  "DPMP1-H",
+  "DPMP1-Inv",
+  "DPMP2-I",
+  "DPMP2-H",
+  "DPMP2-Inv",
+  "DPMP3-I",
+  "DPMP3-H",
+  "DPMP3-Inv"
+)
 
 .GetModelStr <- function(model){
   if (is.character(model)) {

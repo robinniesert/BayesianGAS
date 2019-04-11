@@ -15,10 +15,10 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig_show = 'hold',
+  fig.show = 'hold',
   fig.width = 7,
   fig.height = 5,
-  fig_align = 'center'
+  fig.align = 'center'
 )
 ```
 
@@ -40,7 +40,7 @@ kNumParams  <- 6
 ## Load data 
 
 ```{r load_data}
-data(SP500, package = "BayesianGAS")
+data("SP500", package = "BayesianGAS")
 dates   <- as.Date(rev(spData$Date)[-(1:kFiveYrsIdx)])
 returns <- ts(
   diff(rev(spData$Adj.Close))[-(1:(kFiveYrsIdx - 1))],
@@ -51,7 +51,7 @@ returns <- ts(
 
 ### Plot Returns
 ```{r}
-leg = "S&P 500 Returns"
+leg <- "S&P 500 Returns"
 par(mfrow = c(1, 1))
 plot(dates, returns, type = "l", xaxt = "n", xlab = "Years", ylab = "Return")
 legend("topleft", legend = leg, bty = "n", lty = 1)
@@ -105,6 +105,7 @@ legend("topleft", legend = leg, lty = c(1), lwd = c(1.5), col = c("red"),
        bty = "n")
 
 ```
+
 
 ## Markov Chain Monte Carlo (MCMC)
 
@@ -294,6 +295,7 @@ cat("HMC Time: ", timeHMC, sprintf(" seconds\n"))
 ```
 
 ## Comparing MCMC Methods 
+
 ```{r}
 mcmcNames <- c("RWMH", "Griddy Gibbs", "AdMit", "HMC")
 N <- kNumParams * length(mcmcNames)
@@ -332,8 +334,7 @@ knitr::kable(abs(zVals) < 1.96, caption = "Geweke convergence diagnostics test @
 
 ### Descriptic statistics of MCMC draws
 ```{r}
-summary <- summary(mcmcSamples)
-knitr::kable(summary$statistics)
+knitr::kable(summary(mcmcSamples)$statistics)
 ```
 
 ### Effective sample sizes (ESSs) & factors
@@ -369,7 +370,7 @@ PlotHists(
 ```
 
 ### Joint distribtuion plots 
-```{r, fig.width = 6, fig.height = 6, fig_align = 'center'}
+```{r, fig.width = 6, fig.height = 6, fig.align = 'center'}
 paramPairs <- list(
   list(expression(tilde(omega)), "B"),
   list("A", "B"),
@@ -425,7 +426,7 @@ for (i in zeroix) {
 ```
 
 ### Highest Posterior Density (HPD) volatility plots
-```{r, fig.width = 10, fig.height = 6, fig_align = 'center'}
+```{r, fig.width = 10, fig.height = 6, fig.align = 'center'}
 zoomDate <- "2016-09-12"
 PlotHPDOverTime(
   volsGenDraws,
@@ -438,8 +439,8 @@ PlotHPDOverTime(
   obsStr = "S&P 500 absolute returns",
   statsML = volsGen,
   zoomDate = zoomDate,
-  xy1 = list(x = c(17056, 17165), y = c(39.5, 102)),
-  xy2 = list(x = c(17056, 17165), y = c(18, 55))
+  xy1 = list(x = c(17058, 17165), y = c(39.5, 102)),
+  xy2 = list(x = c(17058, 17165), y = c(18, 55))
 )
 ```
 
@@ -448,12 +449,135 @@ PlotHPDOverTime(
 zoomDateIdx <- which(dates == as.Date(zoomDate))
 zoomDateDraws <- volsGenDraws[, zoomDateIdx]
 ```
-Return the day before `r zoomDate`: `r returns[zoomDateIdx - 1]`
-Mean skewness whole sample: `r mean(moments::skewness(volsGenDraws))`
-Mean kurtosis whole sample: `r mean(moments::kurtosis(volsGenDraws))`
-Mean skewness on `r zoomDate`: `r mean(moments::skewness(zoomDateDraws))`
-Mean kurtosis on `r zoomDate`: `r mean(moments::kurtosis(zoomDateDraws))`
+Return the day before `r zoomDate`: `r returns[zoomDateIdx - 1]`  
+Mean skewness whole sample: `r mean(moments::skewness(volsGenDraws))`  
+Mean kurtosis whole sample: `r mean(moments::kurtosis(volsGenDraws))`  
+Mean skewness on `r zoomDate`: `r mean(moments::skewness(zoomDateDraws))`  
+Mean kurtosis on `r zoomDate`: `r mean(moments::kurtosis(zoomDateDraws))`  
 
+
+## Beta-t-EGARCH comparison
+
+### ML estimation Beta-t-EGARCH
+```{r ML_estimation}
+initParamsBetaT  <- c(
+  omega = ltScale,
+  A = 0.05,
+  B = 0.95,
+  mu = mean(returns),
+  NuBar = 0.2
+)
+betaT <- FitML(
+  model = new(BetaTEGARCH),
+  initParams = initParamsBetaT,
+  y = returns,
+  f1 = ltScale,
+  method = 'BFGS',
+  control = list(maxit = 1e5),
+  hessian = TRUE,
+  verbose = TRUE
+)
+betaT$SetParams(betaT$ParamsML)
+volsT <- betaT$VolFilter(returns, ltScale)
+```
+
+### HMC Beta-t-EGARCH
+```{r}
+kNumParamsBetaT <- 5
+priorStackBetaT <- new(
+  PriorStack,
+  rep("ImproperUniform", kNumParamsBetaT),
+  list(
+    c(-Inf, Inf),
+    c(-Inf, Inf),
+    c(-1, 1),
+    c(-Inf, Inf),
+    c(0, 0.5)
+  )
+)
+lbBetaT = c(-Inf, -Inf, -1., -Inf, 0.)
+ubBetaT = c(Inf, Inf, 1., Inf, 0.5)
+startTime <- Sys.time()
+firstWarmUpHMCBetaT <- HMC(
+  "BetaTEGARCH",
+  priorStackBetaT,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParamsBetaT,
+  iter = 100,
+  mass = diag(kNumParamsBetaT),
+  stepsize = 0.01,
+  integrationTime = 0.2,
+  lb = lbBetaT,
+  ub = ubBetaT
+)
+secondWarmUpHMCBetaT <- HMC(
+  "BetaTEGARCH",
+  priorStackBetaT,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParamsBetaT,
+  iter = 100,
+  mass = solve(cov(firstWarmUpHMCBetaT[-(1:50),])),
+  stepsize = 0.1,
+  integrationTime = 2.,
+  lb = lbBetaT,
+  ub = ubBetaT
+)
+drawsHMCBetaT <- HMC(
+  "BetaTEGARCH",
+  priorStackBetaT,
+  y = as.matrix(returns),
+  f1 = ltScale,
+  initParams = initParamsBetaT,
+  iter = iter,
+  mass = solve(cov(secondWarmUpHMCBetaT[-(1:20),])),
+  stepsize = 0.5,
+  integrationTime = 2.0,
+  lb = lbBetaT,
+  ub = ubBetaT
+)
+endTime <- Sys.time()
+timeHMCBetaT <- difftime(endTime, startTime, units = 'secs')
+cat("HMC Time: ", timeHMCBetaT, sprintf(" seconds\n"))
+```
+
+
+
+### Posterior of volatility Beta-t-EGARCH
+```{r}
+volsTDraws <- matrix(0, iter - burn, length(returns))
+for (i in 1:(iter - burn)) {
+  betaT$SetParams(as.vector(drawsHMCBetaT[burn + i,]))
+  volsTDraws[i, ] <- betaT$VolFilter(returns, ltScale)
+  if ((i > 0) && ((i %% 1e4) == 0)) {
+    cat(sprintf("iter %i\n", i));
+  }
+}
+```
+
+### HPD volatility plots Beta-t-EGARCH
+```{r, fig.width = 10, fig.height = 6, fig.align = 'center'}
+zoomDate <- "2016-09-12"
+PlotHPDOverTime(
+  volsTDraws,
+  returns,
+  dates,
+  startDate = "2016-04-21",
+  endDate = "2017-04-21",
+  ylab = "Returns",
+  statStr = "volatility",
+  obsStr = "S&P 500 absolute returns",
+  statsML = volsT,
+  zoomDate = zoomDate,
+  xy1 = list(x = c(17058, 17165), y = c(26, 102)),
+  xy2 = list(x = c(17058, 17165), y = c(18, 55)),
+  modeCol = rgb(0,0,1,1), 
+  MLCol = "red", 
+  fillCol = rgb(0,0,1,1/4),
+  borderCol = rgb(0,0,1,1/2)
+)
+```
 
 ## Miscelaneuos
 
@@ -510,7 +634,10 @@ legend("topright", legend = leg, bty = "n", col = c("blue", "red"),
 ### Degrees of freedom parameter histogram
 ```{r, fig.width = 6, fig.height = 4, fig.align = 'centre'}
 drawsEta <- 1 / drawsHMC[-(1:burn), "expression(bar(eta))"]
-cat("Posterior range Eta parameter: ", range(drawsEta), sprintf("\n"))
+cat("Posterior range d.o.f. parameter Beta-Gen-t-EGARCH: ", range(drawsEta), 
+    sprintf("\n"))
+cat("Posterior range d.o.f. parameter Beta-t-EGARCH: ", 
+    range(1 / drawsHMCBetaT[,5]), sprintf("\n"))
 hist(main = "", drawsEta[drawsEta < 200], xlab = "", breaks = 0:40 * 5)
 title(xlab = expression(eta), cex.lab = 1.2)
 ```

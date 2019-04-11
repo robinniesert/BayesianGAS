@@ -2,7 +2,7 @@
 #define PriorStack_h 1
 
 #include "Priors.h"
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 using namespace Rcpp;
 
 class PriorStack{

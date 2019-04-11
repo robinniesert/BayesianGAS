@@ -1,5 +1,6 @@
 FitML <- function(model, initParams, y, f1, method = 'BFGS',
-                  control = list(maxit = 1e5), hessian = TRUE, verbose = TRUE){
+                  control = list(maxit = 1e5), hessian = TRUE, verbose = TRUE,
+                  ...){
   model <- CreateModel(model)
   control <- c(control, fnscale = -1)
 
@@ -11,17 +12,22 @@ FitML <- function(model, initParams, y, f1, method = 'BFGS',
     f1 = f1,
     method = method,
     control = control,
-    hessian = hessian
+    hessian = hessian,
+    ...
   )
 
   model$LogLValML <- optimModel$value
   model$ParamsML <- optimModel$par
-  model$StdsML <- sqrt(diag(solve(-optimModel$hessian)))
+  if (hessian) {
+    model$StdsML <- sqrt(diag(solve(-optimModel$hessian)))
+  }
 
   if (verbose) {
     cat("ML Log-Likelihood: ", model$LogLValML, sprintf("\n"))
     cat("ML parameter estimates: ", model$ParamsML, sprintf("\n"))
-    cat("ML standard errors: ", model$ParamsML, sprintf("\n"))
+    if (hessian) {
+      cat("ML standard errors: ", model$ParamsML, sprintf("\n"))
+    }
   }
 
   if (optimModel$convergence > 0) {

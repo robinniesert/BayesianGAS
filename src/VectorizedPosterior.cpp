@@ -9,7 +9,7 @@ NumericMatrix ConvertVectorToMatrix(NumericVector x){
 }
 
 NumericVector VectorizedPosterior(RObject params, String modelStr,
-    PriorStack priorStack, NumericMatrix y, double f1, double logOffset,
+    PriorStack priorStack, NumericMatrix y, RObject f1, double logOffset,
     bool log){
   int i;
   NumericMatrix params_;
