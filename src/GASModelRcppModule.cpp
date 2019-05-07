@@ -61,6 +61,7 @@ RCPP_MODULE(GASModel){
     .constructor<NumericVector, int, double>()
     .constructor<NumericVector, PriorStack, int, double>()
     .method("IntensityFilter", &DPMP::IntensityFilter)
+    .method("Simulate", &DPMP::Simulate)
     .method("setOmega", &DPMP::setOmega)
     .method("setA", &DPMP::setA)
     .method("setB", &DPMP::setB)

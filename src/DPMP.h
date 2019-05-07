@@ -5,7 +5,7 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
-const int kNumTransitions = 4;
+const int kNumTransitionTypes = 4;
 const int kNumParamsOneF = 9;
 const int kNumParamsTwoF = 10;
 const int kNumParamsThreeF = 12;
@@ -38,6 +38,7 @@ public:
   virtual void SetTimeTInputs(arma::vec yt, arma::vec ft);
 
   arma::mat IntensityFilter(NumericVector y, RObject f1, bool log = true);
+  arma::mat Simulate(int numIG, int numSIG, int numEvents, RObject f1);
 
   void setOmega(arma::vec newOmega);
   void setA(arma::mat newA);
@@ -55,6 +56,7 @@ private:;
   double fisherInfPower_;
   double dtau_t_;
   arma::vec logLambda_t_;
+  arma::vec lambda_t_;
   arma::vec yt_;
   arma::vec Kt_;
 };

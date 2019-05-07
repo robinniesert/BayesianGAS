@@ -50,3 +50,11 @@ test_that("Filter function produces correct outputs.", {
   expect_equal(predOut2, testOut2, tolerance = 1e-6)
   expect_equal(predOut3, testOut3, tolerance = 1e-6)
 })
+
+test_that("Simulate function works", {
+  set.seed(100)
+  sims <- dpmpTwoI$Simulate(10, 10, 10, rep(0, 2))
+  testSims <- c(0., 0., 1., 0., 2.195443, 6., 6., 9., 9., -4.996169, -4.996169,
+                -5.000163, -4.992337)
+  expect_equal(sims[10,], testSims, tolerance = 1e-6)
+})

@@ -35,8 +35,8 @@ DPMP::DPMP(int numF, double fisherInfPower)
   }else{
     stop("Power for Fisher Information matrix is not set to a valid value.");
   }
-  C.zeros(kNumTransitions, NumF);
-  W.zeros(kNumTransitions);
+  C.zeros(kNumTransitionTypes, NumF);
+  W.zeros(kNumTransitionTypes);
   DiagCoeffMat = true;
 }
 
@@ -67,7 +67,7 @@ void DPMP::SetParams(NumericVector initParams)
     if (NumParams != kNumParamsOneF){
       stop("Supplied number of parameters incorrect for number of factors.");
     }
-    C = arma::ones(kNumTransitions, NumF);
+    C = arma::ones(kNumTransitionTypes, NumF);
     C.head_rows(3) = arma::vec(initParams[Range(tmpIdx, tmpIdx + 2)]);
     W = arma::mat(initParams[Range(tmpIdx + 3, tmpIdx + 6)]);
     break;
@@ -75,7 +75,7 @@ void DPMP::SetParams(NumericVector initParams)
     if (NumParams != kNumParamsTwoF){
       stop("Supplied number of parameters incorrect for number of factors.");
     }
-    C = arma::zeros(kNumTransitions, NumF);
+    C = arma::zeros(kNumTransitionTypes, NumF);
     C(0, 0) = initParams[tmpIdx];
     C(1, 0) = initParams[tmpIdx + 1];
     C(2, 1) = 1.;
@@ -86,7 +86,7 @@ void DPMP::SetParams(NumericVector initParams)
     if (NumParams != kNumParamsThreeF){
       stop("Supplied number of parameters incorrect for number of factors.");
     }
-    C = arma::zeros(kNumTransitions, NumF);
+    C = arma::zeros(kNumTransitionTypes, NumF);
     C(0, 0) = 1.;
     C(1, 0) = initParams[tmpIdx];
     C(1, 2) = initParams[tmpIdx + 1];
@@ -111,8 +111,7 @@ bool DPMP::ParamsValid()
 
 double DPMP::UpdateLogL(arma::vec yt, arma::vec ft)
 {
-  return (arma::dot(yt_, logLambda_t_) -
-          dtau_t_ * arma::dot(Kt_, arma::exp(logLambda_t_)));
+  return arma::dot(yt_, logLambda_t_) -  dtau_t_ * arma::dot(Kt_, lambda_t_);
 }
 
 arma::vec DPMP::ScaledScore(arma::vec yt, arma::vec ft)
@@ -140,7 +139,7 @@ arma::mat DPMP::ScoreScale(arma::vec yt, arma::vec ft)
 
 arma::vec DPMP::Score(arma::vec yt, arma::vec ft)
 {
-  return C.t() * (yt_ - dtau_t_ * Kt_ % arma::exp(logLambda_t_));
+  return C.t() * (yt_ - dtau_t_ * Kt_ % lambda_t_);
 }
 
 double DPMP::LogConstant()
@@ -186,9 +185,10 @@ void DPMP::UpdateGradLogLFixedF(arma::vec yt, arma::vec ft, arma::vec &grad)
 void DPMP::SetTimeTInputs(arma::vec yt, arma::vec ft)
 {
   logLambda_t_ = W + C * ft;
-  yt_ = yt.head(kNumTransitions);
-  dtau_t_ = yt(kNumTransitions);
-  Kt_ = yt.tail(kNumTransitions);
+  lambda_t_ = arma::exp(logLambda_t_);
+  yt_ = yt.head(kNumTransitionTypes);
+  dtau_t_ = yt(kNumTransitionTypes);
+  Kt_ = yt.tail(kNumTransitionTypes);
 }
 
 arma::mat DPMP::IntensityFilter(NumericVector y, RObject f1, bool log)
@@ -199,10 +199,76 @@ arma::mat DPMP::IntensityFilter(NumericVector y, RObject f1, bool log)
   arma::mat logLambda = C * f.t();
   logLambda.each_col() += W;
   if (log){
-    return (logLambda).t();
+    return logLambda.t();
   }else{
     return (arma::exp(logLambda)).t();
   }
+}
+
+arma::mat DPMP::Simulate(int numIG, int numSIG, int numEvents, RObject f1)
+{
+  int transitionIdx;
+  int dtauIdx = kNumTransitionTypes;
+
+  arma::mat logLambda(kNumTransitionTypes, numEvents);
+  arma::mat y(2 * kNumTransitionTypes + 1, numEvents);
+  arma::span yIdx = arma::span(0, kNumTransitionTypes - 1);
+  arma::span KIdx = arma::span(kNumTransitionTypes + 1,
+                               2 * kNumTransitionTypes);
+
+  arma::vec ft = as<arma::vec>(f1);;
+  arma::vec st;
+  arma::vec transitionProb;
+
+  yt_ = arma::zeros(kNumTransitionTypes);
+  Kt_ = arma::vec(kNumTransitionTypes);
+  Kt_(0) = Kt_(1) = numIG; // initialize exposures
+  Kt_(2) = Kt_(3) = numSIG;
+
+  for (int i = 0; i < numEvents; i++){
+    logLambda_t_ = W + C * ft;
+    lambda_t_ = arma::exp(logLambda_t_);
+
+    // sample duration between events and event transition type
+    dtau_t_ = -::log(1 - R::runif(0, 1)) / arma::dot(Kt_, lambda_t_);
+    transitionProb = Kt_ % lambda_t_ / dot(Kt_, lambda_t_);
+    transitionIdx = arma::accu(arma::cumsum(transitionProb) < R::runif(0, 1));
+    yt_(transitionIdx) = 1;
+
+    // update observation and intensity matrices
+    y(dtauIdx, i) = dtau_t_;
+    y(yIdx, i) = yt_;
+    y(KIdx, i) = Kt_;
+    logLambda.col(i) = logLambda_t_;
+
+    // update factors
+    st = ScaledScore(y.col(i), ft);
+    ft = FilterUpdate(st, ft);
+
+    // adjust exposures
+    if (transitionIdx == 0){
+      Kt_(0)--;
+      Kt_(1)--;
+      Kt_(2)++;
+      Kt_(3)++;
+    }else if (transitionIdx == 1){
+      Kt_(0)--;
+      Kt_(1)--;
+    }else if (transitionIdx == 2){
+      Kt_(0)++;
+      Kt_(1)++;
+      Kt_(2)--;
+      Kt_(3)--;
+    }else if (transitionIdx == 3){
+      Kt_(2)--;
+      Kt_(3)--;
+    }
+
+    // reset transition types
+    yt_.zeros();
+  }
+
+  return arma::join_cols(y, logLambda).t();
 }
 
 void DPMP::setOmega(arma::vec newOmega)
@@ -238,6 +304,5 @@ arma::mat DPMP::getB()
 
 arma::mat DPMP::FisherInf()
 {
-  return (C.t() * arma::diagmat(Kt_ % arma::exp(logLambda_t_) /
-          dot(Kt_, arma::exp(logLambda_t_))) * C);
+  return C.t() * arma::diagmat(Kt_ % lambda_t_ / arma::dot(Kt_, lambda_t_)) * C;
 }
