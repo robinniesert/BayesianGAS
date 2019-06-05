@@ -6,5 +6,6 @@
 \description{
 Vectorized version of the posterior for a GAS model
 of type \code{modelStr} and with a prior specified by the \code{priorStack}.
-Used for inference with the \code{\link[AdMit]{AdMit}} sampling algorithms.
+Used for inference in combination with the \code{\link[AdMit]{AdMit}}
+sampling algorithms.
 }

@@ -4,8 +4,8 @@
 \alias{HMC}
 \title{Hamoltonian Monte Carlo.}
 \description{
-Similar to \code{GGS}, except that draws are generated using the Hamiltonian
-Monte Carlo algorithm. Usage requires that the gradient for the specified
-GAS model is implemented (this is currently not the case for the \code{DPMP}
-class of models).
+Function of similar form as \code{GGS}, but draws are generated
+using the Hamiltonian Monte Carlo algorithm. Usage requires that the gradient
+for the specified GAS model is implemented (this is currently not the case
+for the \code{DPMP} class of models).
 }

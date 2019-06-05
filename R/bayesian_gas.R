@@ -18,6 +18,23 @@
 #' interface. The specific GAS model classes implement the details of the model
 #' specific probability density and other desired specialized functionality.
 #'
+#' @section Supported Models:
+#' \itemize{
+#'  \item{\code{BetaGenTEGARCH}:} {The Beta-Gen-t-EGARCH model introduced by
+#'  Harvey & Lange (2017).}
+#'  \item{\code{BetaTEGARCH}:} {The Beta-t-EGARCH model introduced by Harvey &
+#'  Chakravarty (2008).}
+#'  \item{\code{DPMP}, \code{DPMP1-I}, \code{DPMP1-H}, \code{DPMP1-Inv},
+#'    \code{DPMP2-I}, \code{DPMP2-H}, \code{DPMP2-Inv},
+#'    \code{DPMP3-I}, \code{DPMP3-H}, \code{DPMP3-Inv}:} {
+#'    The Dynamic Pooled Marked Point Process (DPMP) models introduced in Creal,
+#'    Lucas & Koopman (2011). The number represents the number of time-varying
+#'    factors and the specification following the hyphen reflects the scaling
+#'    factor used in the score update; "I" for Identity scaling, "H" for the
+#'    inverse square root of the Fisher Information (FI) matrix, "Inv" for the
+#'    inverse Fisher Information (FI) matrix.}
+#' }
+#'
 #' @section Usage:
 #' \preformatted{
 #' m <- new(GASModel, modelStr)
@@ -45,7 +62,7 @@
 #' Create a new GASModel instance of type \code{GASModel}. The
 #' instance has access to the functionality associated with the model type
 #' specified in modelStr. The string modelStr has to be one of the models
-#' included in the supported model list (see \code{\link{BayesianGAS}}). Optionally
+#' included in the supported model list. Optionally
 #' supply a parameter vector \code{initParams} and a prior specification
 #' \code{priorStack} (see \code{\link{PriorStack}})
 #'
@@ -82,6 +99,18 @@
 #' data \code{y}, the initial time-varying paramater state \code{f1}. Returns
 #' array like of dimension T by d, where T is the number of observations and d
 #' is the number time-varying parameters of the model.
+#'
+#' @references {
+#' Creal, D., Koopman, S. J., & Lucas, A. (2011b).
+#'  Generalized autoregressive score models with applications [Working paper].
+#'
+#' Harvey, A., & Chakravarty, T. (2008).
+#'  Beta-t-(E)GARCH [Cambridge Working Papers in Economics].
+#'
+#' Harvey, A., & Lange, R. J. (2017).
+#'  Volatility modeling with a Generalized t distribution.
+#'  Journal of Time Series Analysis, 38(2), 175–190.
+#' }
 #'
 #' @export
 NULL

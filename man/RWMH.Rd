@@ -4,7 +4,7 @@
 \alias{RWMH}
 \title{Random Walk Metropolis Hastings.}
 \description{
-Similar to \code{GGS}, except that draws are generated using a Random Walk
-Metropolis Hasting's algorithm with multivariate Student's-t proposal
-density.
+Function of similar form as \code{GGS}, but draws are generated using a
+Random Walk Metropolis Hasting's algorithm with multivariate Student's-t
+proposal density.
 }
