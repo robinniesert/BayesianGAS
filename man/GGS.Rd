@@ -2,7 +2,11 @@
 % Please edit documentation in R/bayesian_gas.R
 \name{GGS}
 \alias{GGS}
-\title{An object that fully specifies the prior for a model.}
+\title{Griddy Gibbs Sampler.}
 \description{
-Allows for flexible specification of the prior over all model parameters.
+Function that returns a sample of Monte Carlo draws given a GAS model
+of type \code{modelStr} and with a prior specified by the \code{priorStack}.
+Draws are generated using the Griddy Gibbs Sampler as introduced in
+Ritter, C., & Tanner, M. A. (1992). "Facilitating the Gibbs sampler:
+the Gibbs stopper and the griddy-Gibbs sampler".
 }

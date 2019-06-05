@@ -2,7 +2,9 @@
 % Please edit documentation in R/bayesian_gas.R
 \name{VectorizedPosterior}
 \alias{VectorizedPosterior}
-\title{An object that fully specifies the prior for a model.}
+\title{Vectorized Posterior Distribution Function.}
 \description{
-Allows for flexible specification of the prior over all model parameters.
+Vectorized version of the posterior for a GAS model
+of type \code{modelStr} and with a prior specified by the \code{priorStack}.
+Used for inference with the \code{\link[AdMit]{AdMit}} sampling algorithms.
 }

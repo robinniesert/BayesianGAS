@@ -1,15 +1,12 @@
 ---
 title: "Model Comparisons: Dynamic Pooled Marked Point Process Models"
-author: "Robin Niesert"
-date: "April 2nd, 2019"
 output: 
   rmarkdown::html_vignette:
-    keep_md: yes
 vignette: >
   %\VignetteIndexEntry{Model Comparisons: Dynamic Pooled Marked Point Process Models}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{}
+  %\VignetteDepends{bridgesampling, coda}
+  \usepackage[utf8]{inputenc}
 ---
 
 
@@ -39,9 +36,9 @@ kNumTransitions <- 4
 
 ```r
 simParams <- c(
-  A = c(0.05, 0.01),
-  B = c(0.96, 0.72),
-  C = c(0.39, 0.89),
+  A = c(0.07, 0.04),
+  B = c(0.99, 0.96),
+  C = c(0.9, 1.2),
   W = c(-5.42, -10.07, -5.45, -5.71)
 )
 dpmpSimModel <- new(DPMP, simParams, 2, -1.)
@@ -77,7 +74,7 @@ for (tt in kTransitionTypes) {
 ```
 
 <div class="figure" style="text-align: center">
-<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-15-1.png" alt="Transitions"  />
+<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-1-1.png" alt="Transitions"  />
 <p class="caption">Transitions</p>
 </div>
 ### Set data attributes
@@ -143,51 +140,49 @@ for (i in 1:3) {
   }
 }
 #> Fitting model:  DPMP1-I 
-#> ML Log-Likelihood:  -25997.16 
-#> ML parameter estimates:  0.0931982 0.8037777 0.2057308 0.5010474 0.1168047 -5.422278 -10.0544 -5.47315 -5.738657 
-#> ML standard errors:  0.0931982 0.8037777 0.2057308 0.5010474 0.1168047 -5.422278 -10.0544 -5.47315 -5.738657 
+#> ML Log-Likelihood:  -25919.93 
+#> ML parameter estimates:  0.06978198 0.9794991 0.8397932 1.163307 -0.05687344 -5.418364 -9.820522 -5.460303 -5.703737 
+#> ML standard errors:  0.06978198 0.9794991 0.8397932 1.163307 -0.05687344 -5.418364 -9.820522 -5.460303 -5.703737 
 #> 
 #> Fitting model:  DPMP1-H 
-#> ML Log-Likelihood:  -25996.99 
-#> ML parameter estimates:  0.05080459 0.8014219 0.2092616 0.4957341 0.114561 -5.422582 -10.05288 -5.473332 -5.740393 
-#> ML standard errors:  0.05080459 0.8014219 0.2092616 0.4957341 0.114561 -5.422582 -10.05288 -5.473332 -5.740393 
+#> ML Log-Likelihood:  -25910.65 
+#> ML parameter estimates:  0.0560065 0.9744908 0.8035294 1.138287 -0.06413627 -5.477071 -9.905284 -5.455787 -5.779496 
+#> ML standard errors:  0.0560065 0.9744908 0.8035294 1.138287 -0.06413627 -5.477071 -9.905284 -5.455787 -5.779496 
 #> 
 #> Fitting model:  DPMP1-Inv 
-#> ML Log-Likelihood:  -25997.01 
-#> ML parameter estimates:  0.0271067 0.8000182 0.2130024 0.4976545 0.1102174 -5.42284 -10.05446 -5.472889 -5.741045 
-#> ML standard errors:  0.0271067 0.8000182 0.2130024 0.4976545 0.1102174 -5.42284 -10.05446 -5.472889 -5.741045 
+#> ML Log-Likelihood:  -25901.14 
+#> ML parameter estimates:  0.04269861 0.9660898 0.7617855 1.089395 -0.0650933 -5.541598 -9.996812 -5.44982 -5.870837 
+#> ML standard errors:  0.04269861 0.9660898 0.7617855 1.089395 -0.0650933 -5.541598 -9.996812 -5.44982 -5.870837 
 #> 
 #> Fitting model:  DPMP2-I 
-#> ML Log-Likelihood:  -25997.38 
-#> ML parameter estimates:  0.09376317 0.01158158 0.7962677 0.7968437 0.2081367 0.5046863 -5.422421 -10.05542 -5.470769 -5.739639 
-#> ML standard errors:  0.09376317 0.01158158 0.7962677 0.7968437 0.2081367 0.5046863 -5.422421 -10.05542 -5.470769 -5.739639 
+#> ML Log-Likelihood:  -25894.66 
+#> ML parameter estimates:  0.0700188 0.06496276 0.9793394 0.8288143 0.8421205 1.151747 -5.42262 -9.826251 -5.443969 -5.708143 
+#> ML standard errors:  0.0700188 0.06496276 0.9793394 0.8288143 0.8421205 1.151747 -5.42262 -9.826251 -5.443969 -5.708143 
 #> 
 #> Fitting model:  DPMP2-H 
-#> ML Log-Likelihood:  -25997.15 
-#> ML parameter estimates:  0.05078986 0.0069546 0.7979974 0.7926063 0.208281 0.5008425 -5.422708 -10.05269 -5.471185 -5.741572 
-#> ML standard errors:  0.05078986 0.0069546 0.7979974 0.7926063 0.208281 0.5008425 -5.422708 -10.05269 -5.471185 -5.741572 
+#> ML Log-Likelihood:  -25885.1 
+#> ML parameter estimates:  0.05613123 0.03988772 0.9738122 0.8255534 0.8043467 1.133035 -5.485215 -9.914134 -5.433857 -5.787902 
+#> ML standard errors:  0.05613123 0.03988772 0.9738122 0.8255534 0.8043467 1.133035 -5.485215 -9.914134 -5.433857 -5.787902 
 #> 
 #> Fitting model:  DPMP2-Inv 
-#> ML Log-Likelihood:  -25997.1 
-#> ML parameter estimates:  0.02698514 0.004079196 0.7950276 0.7987161 0.215911 0.5033953 -5.422882 -10.0537 -5.471811 -5.741671 
-#> ML standard errors:  0.02698514 0.004079196 0.7950276 0.7987161 0.215911 0.5033953 -5.422882 -10.0537 -5.471811 -5.741671 
+#> ML Log-Likelihood:  -25877.03 
+#> ML parameter estimates:  0.04224906 0.0222066 0.9643971 0.8267049 0.7626812 1.092019 -5.552017 -10.0112 -5.422975 -5.882952 
+#> ML standard errors:  0.04224906 0.0222066 0.9643971 0.8267049 0.7626812 1.092019 -5.552017 -10.0112 -5.422975 -5.882952 
 #> 
-#> Fitting model:  DPMP3-I
-#> Warning in sqrt(diag(solve(-optimModel$hessian))): NaNs produced
-#> ML Log-Likelihood:  -26000.05 
-#> ML parameter estimates:  0.006020387 0.01139102 0.09474762 0.7983493 0.7994143 0.8046904 0.5017987 0.4982762 -5.421453 -10.05366 -5.47083 -5.739326 
-#> ML standard errors:  0.006020387 0.01139102 0.09474762 0.7983493 0.7994143 0.8046904 0.5017987 0.4982762 -5.421453 -10.05366 -5.47083 -5.739326 
+#> Fitting model:  DPMP3-I 
+#> ML Log-Likelihood:  -25928.09 
+#> ML parameter estimates:  0.08299142 0.06505988 0.09675391 0.9692331 0.8280087 0.9776971 0.3934887 0.9996248 -5.576531 -9.881951 -5.443679 -5.704705 
+#> ML standard errors:  0.08299142 0.06505988 0.09675391 0.9692331 0.8280087 0.9776971 0.3934887 0.9996248 -5.576531 -9.881951 -5.443679 -5.704705 
 #> 
-#> Fitting model:  DPMP3-H
-#> Warning in sqrt(diag(solve(-optimModel$hessian))): NaNs produced
-#> ML Log-Likelihood:  -26000.04 
-#> ML parameter estimates:  0.003761458 0.007045877 0.04944199 0.7563749 0.7833416 0.807977 0.5707379 0.1571744 -5.421588 -10.04823 -5.471177 -5.740302 
-#> ML standard errors:  0.003761458 0.007045877 0.04944199 0.7563749 0.7833416 0.807977 0.5707379 0.1571744 -5.421588 -10.04823 -5.471177 -5.740302 
+#> Fitting model:  DPMP3-H 
+#> ML Log-Likelihood:  -25918.72 
+#> ML parameter estimates:  0.05286237 0.04002062 0.05765335 0.9620029 0.8254356 0.9705968 -1.26626 2.64715 -5.609563 -10.07319 -5.434376 -5.889032 
+#> ML standard errors:  0.05286237 0.04002062 0.05765335 0.9620029 0.8254356 0.9705968 -1.26626 2.64715 -5.609563 -10.07319 -5.434376 -5.889032 
 #> 
 #> Fitting model:  DPMP3-Inv 
-#> ML Log-Likelihood:  -26000.46 
-#> ML parameter estimates:  0.001120895 0.004211854 0.02473002 0.7938715 0.7943959 0.8118626 0.4984743 0.3991225 -5.422084 -10.04447 -5.471421 -5.739309 
-#> ML standard errors:  0.001120895 0.004211854 0.02473002 0.7938715 0.7943959 0.8118626 0.4984743 0.3991225 -5.422084 -10.04447 -5.471421 -5.739309
+#> ML Log-Likelihood:  -25910.34 
+#> ML parameter estimates:  0.03269343 0.02242519 0.03106928 0.9555229 0.8270558 0.9580188 -2.448493 2.998678 -5.618027 -10.21824 -5.423592 -6.075943 
+#> ML standard errors:  0.03269343 0.02242519 0.03106928 0.9555229 0.8270558 0.9580188 -2.448493 2.998678 -5.618027 -10.21824 -5.423592 -6.075943
 ```
 
 ## MCMC using RWMH
@@ -196,10 +191,10 @@ I deviate slightly here from the analysis presented in the thesis, by thinning t
 
 
 ```r
-iter <- 1e5
+iter <- 4e5
 thinning <- 10
 numDraws <- floor(iter / thinning)
-warmUpRounds <- c(3, 4, 4)
+warmUpRounds <- c(3, 5, 6)
 priorStacks <- list(
   new(
     PriorStack,
@@ -294,7 +289,7 @@ for (i in 1:3) {
         f1 = f1,
         initParams = initParams,
         sigma = cov(warmUpRWMH),
-        iter = 5e4,
+        iter = 2e4,
         stepsize = .2,
         printIter = 1e5,
         thinning = thinning
@@ -332,125 +327,174 @@ for (i in 1:3) {
 ```
 #> Running RWMH for model:  DPMP1-I 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.698 
+#> RWMH - Accept ratio is: 0.352 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.515 
+#> RWMH - Accept ratio is: 0.613 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.690 
-#> RWMH - Accept ratio is: 0.446 
-#> RWMH Time:  35.21421  seconds
-#>           A      B     C1     C2     C3    w1     w2    w3    w4
-#> ESSs 2042.8 1066.9 1740.9 2079.3 2049.9 133.8 1607.6 379.8 143.4
+#> RWMH - Accept ratio is: 0.647 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.412 
+#> RWMH Time:  86.42216  seconds
+#>           A      B     C1     C2     C3   w1   w2     w3     w4
+#> ESSs 6589.6 5986.5 6113.3 6702.2 7659.3 5655 5721 6883.2 5880.7
 #> 
 #> Running RWMH for model:  DPMP1-H 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.623 
+#> RWMH - Accept ratio is: 0.380 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.547 
+#> RWMH - Accept ratio is: 0.598 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.676 
-#> RWMH - Accept ratio is: 0.344 
-#> RWMH Time:  54.76792  seconds
-#>           A    B     C1     C2     C3     w1     w2     w3     w4
-#> ESSs 1330.7 1326 1256.8 1424.9 1465.6 1911.8 1693.5 1793.3 3788.3
+#> RWMH - Accept ratio is: 0.653 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.394 
+#> RWMH Time:  125.0815  seconds
+#>           A      B   C1     C2     C3     w1     w2     w3   w4
+#> ESSs 6920.6 5423.1 6018 5745.6 8633.6 5725.3 5517.8 7926.9 5471
 #> 
 #> Running RWMH for model:  DPMP1-Inv 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.491 
+#> RWMH - Accept ratio is: 0.333 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.546 
+#> RWMH - Accept ratio is: 0.594 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.681 
-#> RWMH - Accept ratio is: 0.384 
-#> RWMH Time:  54.85778  seconds
+#> RWMH - Accept ratio is: 0.654 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.379 
+#> RWMH Time:  127.4997  seconds
 #>           A      B     C1     C2     C3     w1     w2   w3     w4
-#> ESSs 1999.5 1238.5 1628.4 1567.7 1634.1 2410.9 1563.7 2655 3033.7
+#> ESSs 6414.1 5978.4 6686.1 6753.2 7559.3 5502.3 7271.2 7056 5389.4
 #> 
 #> Running RWMH for model:  DPMP2-I 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.659 
+#> RWMH - Accept ratio is: 0.318 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.581 
+#> RWMH - Accept ratio is: 0.573 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.491 
+#> RWMH - Accept ratio is: 0.576 
 #> Warm up 4 
-#> RWMH - Accept ratio is: 0.402 
-#> RWMH - Accept ratio is: 0.279 
-#> RWMH Time:  41.10792  seconds
-#>        A1    A2   B1   B2   C1    C2  w1   w2  w3 w4
-#> ESSs 64.2 379.9 18.7 54.1 37.8 296.2 2.7 30.4 2.1  2
+#> RWMH - Accept ratio is: 0.619 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.601 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.346 
+#> RWMH Time:  92.55852  seconds
+#>          A1     A2     B1     B2     C1     C2     w1     w2     w3     w4
+#> ESSs 5849.2 5048.3 6441.5 4248.6 5765.4 5616.4 3579.9 4165.8 5332.4 3704.5
 #> 
 #> Running RWMH for model:  DPMP2-H 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.308 
+#> RWMH - Accept ratio is: 0.276 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.402 
+#> RWMH - Accept ratio is: 0.581 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.556 
+#> RWMH - Accept ratio is: 0.598 
 #> Warm up 4 
-#> RWMH - Accept ratio is: 0.376 
-#> RWMH - Accept ratio is: 0.423 
-#> RWMH Time:  103.7775  seconds
-#>          A1   A2     B1     B2     C1     C2  w1     w2    w3    w4
-#> ESSs 1729.2 1906 1052.6 1782.6 1291.7 1920.4 195 1745.6 328.7 293.7
+#> RWMH - Accept ratio is: 0.596 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.617 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.353 
+#> RWMH Time:  195.4958  seconds
+#>          A1     A2     B1     B2     C1     C2     w1     w2   w3     w4
+#> ESSs 7502.7 6526.4 8078.4 4766.8 5562.5 5206.9 4473.5 5468.8 6246 4468.5
 #> 
 #> Running RWMH for model:  DPMP2-Inv 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.122 
+#> RWMH - Accept ratio is: 0.214 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.560 
+#> RWMH - Accept ratio is: 0.622 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.680 
+#> RWMH - Accept ratio is: 0.643 
 #> Warm up 4 
-#> RWMH - Accept ratio is: 0.203 
-#> RWMH - Accept ratio is: 0.132 
-#> RWMH Time:  74.93827  seconds
-#>         A1    A2    B1    B2  C1    C2     w1    w2     w3    w4
-#> ESSs 444.6 269.6 365.2 206.9 259 363.4 1462.6 387.8 1368.9 766.9
+#> RWMH - Accept ratio is: 0.615 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.641 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.394 
+#> RWMH Time:  164.0714  seconds
+#>        A1     A2     B1     B2     C1     C2   w1   w2     w3     w4
+#> ESSs 5932 7318.4 8363.9 5947.6 6617.5 6473.9 4588 5560 7577.9 4732.1
 #> 
 #> Running RWMH for model:  DPMP3-I 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.397 
+#> RWMH - Accept ratio is: 0.339 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.420 
+#> RWMH - Accept ratio is: 0.563 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.002 
+#> RWMH - Accept ratio is: 0.583 
 #> Warm up 4 
-#> RWMH - Accept ratio is: 0.845 
-#> RWMH - Accept ratio is: 0.372 
-#> RWMH Time:  43.11761  seconds
-#>         A1     A2     A3   B1   B2    B3    C1     C2    w1     w2    w3
-#> ESSs 466.8 1017.9 1232.6 76.9 36.8 964.7 108.7 1528.3 750.2 1034.6 226.2
-#>         w4
-#> ESSs 450.2
+#> RWMH - Accept ratio is: 0.532 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.552 
+#> Warm up 6 
+#> RWMH - Accept ratio is: 0.519 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.327 
+#> RWMH Time:  103.773  seconds
+#>          A1     A2     A3   B1     B2     B3     C1     C2     w1     w2
+#> ESSs 5225.5 5337.6 5711.9 5125 4218.8 2870.1 4588.2 4408.2 3733.5 4246.5
+#>          w3   w4
+#> ESSs 5252.6 4062
 #> 
 #> Running RWMH for model:  DPMP3-H 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.065 
+#> RWMH - Accept ratio is: 0.231 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.694 
+#> RWMH - Accept ratio is: 0.633 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.512 
+#> RWMH - Accept ratio is: 0.614 
 #> Warm up 4 
-#> RWMH - Accept ratio is: 0.486 
-#> RWMH - Accept ratio is: 0.001 
-#> RWMH Time:  80.32848  seconds
-#>       A1   A2  A3   B1    B2   B3 C1  C2  w1  w2   w3  w4
-#> ESSs 4.2 13.2 5.8 35.6 643.5 15.7 11 2.7 5.9 3.1 19.3 4.8
+#> RWMH - Accept ratio is: 0.543 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.571 
+#> Warm up 6 
+#> RWMH - Accept ratio is: 0.569 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.336 
+#> RWMH Time:  242.6236  seconds
+#>          A1     A2     A3     B1     B2     B3     C1     C2     w1     w2
+#> ESSs 4713.2 5254.2 5247.4 5433.5 4098.5 4554.4 3796.5 3700.1 3498.9 4070.8
+#>          w3     w4
+#> ESSs 6454.6 3917.5
 #> 
 #> Running RWMH for model:  DPMP3-Inv 
 #> Warm up 1 
-#> RWMH - Accept ratio is: 0.156 
+#> RWMH - Accept ratio is: 0.104 
 #> Warm up 2 
-#> RWMH - Accept ratio is: 0.462 
+#> RWMH - Accept ratio is: 0.605 
 #> Warm up 3 
-#> RWMH - Accept ratio is: 0.393 
+#> RWMH - Accept ratio is: 0.616 
 #> Warm up 4 
-#> RWMH - Accept ratio is: 0.370 
-#> RWMH - Accept ratio is: 0.001 
-#> RWMH Time:  58.46403  seconds
-#>      A1  A2   A3   B1   B2   B3  C1  C2  w1  w2  w3  w4
-#> ESSs  4 8.1 14.3 15.4 29.9 37.2 6.8 3.2 5.9 7.7 1.3 3.5
+#> RWMH - Accept ratio is: 0.535 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.610 
+#> Warm up 6 
+#> RWMH - Accept ratio is: 0.610 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.330 
+#> RWMH Time:  189.1757  seconds
+#>          A1     A2     A3     B1     B2   B3     C1     C2     w1     w2
+#> ESSs 5148.9 5497.1 5608.2 5817.8 7892.7 5636 3456.8 3284.7 4309.2 3563.5
+#>          w3     w4
+#> ESSs 6564.8 3647.5
 ```
 ## Model comparisons
 
@@ -513,9 +557,9 @@ for (i in 1:3) {
     modelScores[dpmp$Name, "BIC"] <- IC(modelsML[[dpmp$Name]]$LogLValML, numParams)
   }
 }
-#> Warning: 4500 of the 4500 log_prob() evaluations on the warp-transformed
+#> Warning: 19500 of the 19500 log_prob() evaluations on the warp-transformed
 #> posterior draws produced -Inf/Inf.
-#> Warning: 4500 of the 4500 log_prob() evaluations on the warp-transformed
+#> Warning: 19500 of the 19500 log_prob() evaluations on the warp-transformed
 #> proposal draws produced -Inf/Inf.
 #> Error in out[!from@positive] <- -out[!from@positive]: NAs are not allowed in subscripted assignments
 ```
@@ -594,49 +638,49 @@ Table: DPMP1-Inv
 
              Mean          SD    Naive SE   Time-series SE
 ---  ------------  ----------  ----------  ---------------
-A       0.0273618   0.0044397   0.0000444        0.0000993
-B       0.7805572   0.0724936   0.0007249        0.0020600
-C1      0.2277380   0.0934401   0.0009344        0.0023156
-C2      0.4370118   0.8335829   0.0083358        0.0210535
-C3      0.1195851   0.1074581   0.0010746        0.0026582
-w1     -5.4222511   0.0277406   0.0002774        0.0005650
-w2    -10.0996400   0.2666992   0.0026670        0.0067445
-w3     -5.4739584   0.0297156   0.0002972        0.0005767
-w4     -5.7395821   0.0601529   0.0006015        0.0010921
+A       0.0430330   0.0029585   0.0000148        0.0000369
+B       0.9671581   0.0109687   0.0000548        0.0001419
+C1      0.7747781   0.0650553   0.0003253        0.0007956
+C2      1.1489383   0.4220020   0.0021100        0.0051352
+C3     -0.0655941   0.0337293   0.0001686        0.0003879
+w1     -5.5173307   0.1757921   0.0008790        0.0023699
+w2    -10.0187005   0.3688743   0.0018444        0.0043259
+w3     -5.4529125   0.0331144   0.0001656        0.0003942
+w4     -5.8355669   0.2263137   0.0011316        0.0030828
 
 
 Table: DPMP2-Inv
 
              Mean          SD    Naive SE   Time-series SE
 ---  ------------  ----------  ----------  ---------------
-A1      0.0271803   0.0041726   0.0000417        0.0001979
-A2      0.0062192   0.0054551   0.0000546        0.0003323
-B1      0.7794280   0.0672685   0.0006727        0.0035198
-B2      0.3116239   0.3843931   0.0038439        0.0267252
-C1      0.2327466   0.0966190   0.0009662        0.0060036
-C2      0.5153912   0.8145735   0.0081457        0.0427312
-w1     -5.4260844   0.0281035   0.0002810        0.0007349
-w2    -10.0956840   0.2648900   0.0026489        0.0134516
-w3     -5.4725983   0.0330265   0.0003303        0.0008926
-w4     -5.7372557   0.0590894   0.0005909        0.0021337
+A1      0.0425266   0.0029470   0.0000147        0.0000383
+A2      0.0225523   0.0037956   0.0000190        0.0000444
+B1      0.9655974   0.0108148   0.0000541        0.0001183
+B2      0.8082889   0.0642763   0.0003214        0.0008334
+C1      0.7713541   0.0650450   0.0003252        0.0007996
+C2      1.1312390   0.4253269   0.0021266        0.0052862
+w1     -5.5271181   0.1679253   0.0008396        0.0024792
+w2    -10.0303252   0.3579169   0.0017896        0.0048000
+w3     -5.4238778   0.0484453   0.0002422        0.0005565
+w4     -5.8489658   0.2178291   0.0010891        0.0031666
 
 
 Table: DPMP3-Inv
 
-            Mean          SD    Naive SE   Time-series SE
----  -----------  ----------  ----------  ---------------
-A1     0.0109051   0.0048049   0.0000480        0.0024170
-A2     0.0089534   0.0044570   0.0000446        0.0015648
-A3     0.0200323   0.0017893   0.0000179        0.0004726
-B1     0.9880700   0.0100798   0.0001008        0.0025648
-B2     0.9906126   0.0111670   0.0001117        0.0020415
-B3     0.9772344   0.0139665   0.0001397        0.0022900
-C1    -0.4163860   1.7647617   0.0176476        0.6772413
-C2     1.2543645   0.7175671   0.0071757        0.4018811
-w1    -5.0940337   0.0230581   0.0002306        0.0095300
-w2    -9.5191345   0.1032546   0.0010325        0.0372098
-w3    -5.0783797   0.0460255   0.0004603        0.0402249
-w4    -5.1766137   0.0489235   0.0004892        0.0262874
+             Mean          SD    Naive SE   Time-series SE
+---  ------------  ----------  ----------  ---------------
+A1      0.0326497   0.0030131   0.0000151        0.0000420
+A2      0.0226907   0.0038908   0.0000195        0.0000525
+A3      0.0309430   0.0030087   0.0000150        0.0000402
+B1      0.9561369   0.0123037   0.0000615        0.0001613
+B2      0.8127167   0.0618663   0.0003093        0.0006964
+B3      0.9590436   0.0125104   0.0000626        0.0001666
+C1     -2.2284579   0.6872370   0.0034362        0.0116888
+C2      2.9133461   0.4968537   0.0024843        0.0086692
+w1     -5.6042844   0.1413287   0.0007066        0.0021530
+w2    -10.3206649   0.6810632   0.0034053        0.0114090
+w3     -5.4257631   0.0498756   0.0002494        0.0006156
+w4     -6.0726281   0.1938843   0.0009694        0.0032103
 
 ## Plots
 
@@ -666,6 +710,18 @@ for (i in c(1, 3)) {
       names(meanLogIntensitiesLst)[1:length(meanLogIntensitiesLst) - 1], dpmp$Name)
   }
 }
+#> iter 10000
+#> iter 20000
+#> iter 30000
+#> iter 10000
+#> iter 20000
+#> iter 30000
+#> iter 10000
+#> iter 20000
+#> iter 30000
+#> iter 10000
+#> iter 20000
+#> iter 30000
 intensityDraws <- exp(intensityDraws)
 ```
 
@@ -687,7 +743,7 @@ legMeans <- c(
   "3 factor Inverse FI scaling"
 )
 names(legMeans) <- selectedModels
-yLims <- list(c(-6.5, -4), c(-12.5, -8), c(-6.5, -5.4), c(-9, -2.9))
+yLims <- list(c(-8, -3.5), c(-14, -7), c(-6.3, -4.5), c(-9, -3.5))
 names(yLims) <- kTransitionTypes
 par(mfcol = c(2, 2))
 for (tt in kTransitionTypes) {
@@ -709,7 +765,7 @@ for (tt in kTransitionTypes) {
 ```
 
 <div class="figure" style="text-align: center">
-<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-22-1.png" alt="Mean Log Intensities"  />
+<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-8-1.png" alt="Mean Log Intensities"  />
 <p class="caption">Mean Log Intensities</p>
 </div>
 
@@ -738,8 +794,8 @@ plot(
   selectedDraws[, "C2"],
   cex = 0.2,
   cex.axis = 1,
-  xlab = expression(Z[1]),
-  ylab = expression(Z[2])
+  xlab = expression(C[1]),
+  ylab = expression(C[2])
 )
 lines(c(-5, 0), c(0, 0), lty = 2, lwd = 1)
 lines(c(0, 0), c(-2, 0), lty = 2, lwd = 1)
@@ -747,7 +803,7 @@ points(selectedDraws[, "C1"][ix], selectedDraws[, "C2"][ix], col = "red",
        cex = 0.2, pch = 19)
 ```
 
-<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-23-1.png" style="display: block; margin: auto;" />
+<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
 
 ### Highest Posterior Density (HPD) intensity plots
 
@@ -774,6 +830,6 @@ for (tt in kTransitionTypes) {
 ```
 
 <div class="figure" style="text-align: center">
-<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-24-1.png" alt="HPD plots"  />
+<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-10-1.png" alt="HPD plots"  />
 <p class="caption">HPD plots</p>
 </div>

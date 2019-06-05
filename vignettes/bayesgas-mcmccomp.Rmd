@@ -1,14 +1,12 @@
 ---
 title: "MCMC Method Comparisons: Beta-Gen-t-EGARCH"
-author: "Robin Niesert"
-date: "April 2nd, 2019"
 output: 
   rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{MCMC Method Comparisons: Beta-Gen-t-EGARCH}
-  %\VignetteEngine{knitr::knitr}
-  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteDepends{AdMit, coda, moments}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include = FALSE}

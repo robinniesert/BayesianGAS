@@ -1,3 +1,4 @@
+^R/build_vignettes\.R$
 ^data/CreditRatings\.Rdata$
 ^vignettes/bayesgas-modelcomp-creditdata\.Rmd$
 ^data-raw$

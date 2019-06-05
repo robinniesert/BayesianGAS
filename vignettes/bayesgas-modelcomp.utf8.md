@@ -9,27 +9,20 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.show = 'hold',
-  fig.width = 8,
-  fig.height = 7,
-  fig.align = 'center'
-)
-```
+
 
 # Model Comparisons: Dynamic Pooled Marked Point Process Models
 
 This document contains the R code to reproduce the plots and statistical analysis presented in section 4.2 of 
 > Niesert, R. "Bayesian Inference for Generalized Autoregressive Score Models." (2017).
 
-```{r lib}
+
+```r
 library(BayesianGAS)
 ```
 
-```{r seed_and_constants}
+
+```r
 set.seed(100)
 kTransitionTypes <- c("IGtoSIG", "IGtoD", "SIGtoIG", "SIGtoD")
 kScalings <- c(0., -0.5, -1.0)
@@ -40,7 +33,8 @@ kNumTransitions <- 4
 
 ## Simulate Data 
 
-```{r sim_data}
+
+```r
 simParams <- c(
   A = c(0.07, 0.04),
   B = c(0.99, 0.96),
@@ -67,7 +61,8 @@ y <- cbind(transitions, diffTau, possibleTranstions)
 ```
 
 ### Plot Transitions
-```{r, fig.cap = "Transitions"}
+
+```r
 par(mfcol = c(2, 2))
 for (tt in kTransitionTypes) {
   leg <- paste(tt, "counts")
@@ -77,14 +72,21 @@ for (tt in kTransitionTypes) {
   axis.Date(1, at = seq(min(dates), max(dates), by = "1 years"), format = "%Y")
 }
 ```
+
+<div class="figure" style="text-align: center">
+<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-1-1.png" alt="Transitions"  />
+<p class="caption">Transitions</p>
+</div>
 ### Set data attributes
-```{r set_data_attr}
+
+```r
 numObs <- dim(y)[1]
 ```
 
 ## Maximum Likelihood (ML) estimation 
 
-```{r ML_estimation}
+
+```r
 initParamVecs <- list(
   c(A = 0.05, B = 0.95, C = c(0.5, 0.5, -0.5) , w = c(-5, -10, -5, -5)),
   c(A = rep(0.025, 2), B = rep(0.8, 2), C = rep(0.5, 2) , w = c(-5, -10, -5, -5)),
@@ -137,13 +139,58 @@ for (i in 1:3) {
     cat(sprintf("\n"))
   }
 }
+#> Fitting model:  DPMP1-I 
+#> ML Log-Likelihood:  -25919.93 
+#> ML parameter estimates:  0.06978198 0.9794991 0.8397932 1.163307 -0.05687344 -5.418364 -9.820522 -5.460303 -5.703737 
+#> ML standard errors:  0.06978198 0.9794991 0.8397932 1.163307 -0.05687344 -5.418364 -9.820522 -5.460303 -5.703737 
+#> 
+#> Fitting model:  DPMP1-H 
+#> ML Log-Likelihood:  -25910.65 
+#> ML parameter estimates:  0.0560065 0.9744908 0.8035294 1.138287 -0.06413627 -5.477071 -9.905284 -5.455787 -5.779496 
+#> ML standard errors:  0.0560065 0.9744908 0.8035294 1.138287 -0.06413627 -5.477071 -9.905284 -5.455787 -5.779496 
+#> 
+#> Fitting model:  DPMP1-Inv 
+#> ML Log-Likelihood:  -25901.14 
+#> ML parameter estimates:  0.04269861 0.9660898 0.7617855 1.089395 -0.0650933 -5.541598 -9.996812 -5.44982 -5.870837 
+#> ML standard errors:  0.04269861 0.9660898 0.7617855 1.089395 -0.0650933 -5.541598 -9.996812 -5.44982 -5.870837 
+#> 
+#> Fitting model:  DPMP2-I 
+#> ML Log-Likelihood:  -25894.66 
+#> ML parameter estimates:  0.0700188 0.06496276 0.9793394 0.8288143 0.8421205 1.151747 -5.42262 -9.826251 -5.443969 -5.708143 
+#> ML standard errors:  0.0700188 0.06496276 0.9793394 0.8288143 0.8421205 1.151747 -5.42262 -9.826251 -5.443969 -5.708143 
+#> 
+#> Fitting model:  DPMP2-H 
+#> ML Log-Likelihood:  -25885.1 
+#> ML parameter estimates:  0.05613123 0.03988772 0.9738122 0.8255534 0.8043467 1.133035 -5.485215 -9.914134 -5.433857 -5.787902 
+#> ML standard errors:  0.05613123 0.03988772 0.9738122 0.8255534 0.8043467 1.133035 -5.485215 -9.914134 -5.433857 -5.787902 
+#> 
+#> Fitting model:  DPMP2-Inv 
+#> ML Log-Likelihood:  -25877.03 
+#> ML parameter estimates:  0.04224906 0.0222066 0.9643971 0.8267049 0.7626812 1.092019 -5.552017 -10.0112 -5.422975 -5.882952 
+#> ML standard errors:  0.04224906 0.0222066 0.9643971 0.8267049 0.7626812 1.092019 -5.552017 -10.0112 -5.422975 -5.882952 
+#> 
+#> Fitting model:  DPMP3-I 
+#> ML Log-Likelihood:  -25928.09 
+#> ML parameter estimates:  0.08299142 0.06505988 0.09675391 0.9692331 0.8280087 0.9776971 0.3934887 0.9996248 -5.576531 -9.881951 -5.443679 -5.704705 
+#> ML standard errors:  0.08299142 0.06505988 0.09675391 0.9692331 0.8280087 0.9776971 0.3934887 0.9996248 -5.576531 -9.881951 -5.443679 -5.704705 
+#> 
+#> Fitting model:  DPMP3-H 
+#> ML Log-Likelihood:  -25918.72 
+#> ML parameter estimates:  0.05286237 0.04002062 0.05765335 0.9620029 0.8254356 0.9705968 -1.26626 2.64715 -5.609563 -10.07319 -5.434376 -5.889032 
+#> ML standard errors:  0.05286237 0.04002062 0.05765335 0.9620029 0.8254356 0.9705968 -1.26626 2.64715 -5.609563 -10.07319 -5.434376 -5.889032 
+#> 
+#> Fitting model:  DPMP3-Inv 
+#> ML Log-Likelihood:  -25910.34 
+#> ML parameter estimates:  0.03269343 0.02242519 0.03106928 0.9555229 0.8270558 0.9580188 -2.448493 2.998678 -5.618027 -10.21824 -5.423592 -6.075943 
+#> ML standard errors:  0.03269343 0.02242519 0.03106928 0.9555229 0.8270558 0.9580188 -2.448493 2.998678 -5.618027 -10.21824 -5.423592 -6.075943
 ```
 
 ## MCMC using RWMH
 
 I deviate slightly here from the analysis presented in the thesis, by thinning the posterior sample by a factor of 10 (i.e. I keep only 1 out of 10 draws). This is done to reduce memory usage.
 
-```{r set_iters_and_priors}
+
+```r
 iter <- 4e5
 thinning <- 10
 numDraws <- floor(iter / thinning)
@@ -202,7 +249,8 @@ priorStacks <- list(
 ```
 
 ### Run RWMH
-```{r run_RWMH, warning = FALSE, collapse = FALSE}
+
+```r
 drawsRWMHLst <- list()
 for (i in 1:3) {
   numF <- kNumFactorSpecs[i]
@@ -275,10 +323,184 @@ for (i in 1:3) {
   }
 }
 ```
+
+```
+#> Running RWMH for model:  DPMP1-I 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.352 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.613 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.647 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.412 
+#> RWMH Time:  86.42216  seconds
+#>           A      B     C1     C2     C3   w1   w2     w3     w4
+#> ESSs 6589.6 5986.5 6113.3 6702.2 7659.3 5655 5721 6883.2 5880.7
+#> 
+#> Running RWMH for model:  DPMP1-H 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.380 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.598 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.653 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.394 
+#> RWMH Time:  125.0815  seconds
+#>           A      B   C1     C2     C3     w1     w2     w3   w4
+#> ESSs 6920.6 5423.1 6018 5745.6 8633.6 5725.3 5517.8 7926.9 5471
+#> 
+#> Running RWMH for model:  DPMP1-Inv 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.333 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.594 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.654 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.379 
+#> RWMH Time:  127.4997  seconds
+#>           A      B     C1     C2     C3     w1     w2   w3     w4
+#> ESSs 6414.1 5978.4 6686.1 6753.2 7559.3 5502.3 7271.2 7056 5389.4
+#> 
+#> Running RWMH for model:  DPMP2-I 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.318 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.573 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.576 
+#> Warm up 4 
+#> RWMH - Accept ratio is: 0.619 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.601 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.346 
+#> RWMH Time:  92.55852  seconds
+#>          A1     A2     B1     B2     C1     C2     w1     w2     w3     w4
+#> ESSs 5849.2 5048.3 6441.5 4248.6 5765.4 5616.4 3579.9 4165.8 5332.4 3704.5
+#> 
+#> Running RWMH for model:  DPMP2-H 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.276 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.581 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.598 
+#> Warm up 4 
+#> RWMH - Accept ratio is: 0.596 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.617 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.353 
+#> RWMH Time:  195.4958  seconds
+#>          A1     A2     B1     B2     C1     C2     w1     w2   w3     w4
+#> ESSs 7502.7 6526.4 8078.4 4766.8 5562.5 5206.9 4473.5 5468.8 6246 4468.5
+#> 
+#> Running RWMH for model:  DPMP2-Inv 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.214 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.622 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.643 
+#> Warm up 4 
+#> RWMH - Accept ratio is: 0.615 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.641 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.394 
+#> RWMH Time:  164.0714  seconds
+#>        A1     A2     B1     B2     C1     C2   w1   w2     w3     w4
+#> ESSs 5932 7318.4 8363.9 5947.6 6617.5 6473.9 4588 5560 7577.9 4732.1
+#> 
+#> Running RWMH for model:  DPMP3-I 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.339 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.563 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.583 
+#> Warm up 4 
+#> RWMH - Accept ratio is: 0.532 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.552 
+#> Warm up 6 
+#> RWMH - Accept ratio is: 0.519 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.327 
+#> RWMH Time:  103.773  seconds
+#>          A1     A2     A3   B1     B2     B3     C1     C2     w1     w2
+#> ESSs 5225.5 5337.6 5711.9 5125 4218.8 2870.1 4588.2 4408.2 3733.5 4246.5
+#>          w3   w4
+#> ESSs 5252.6 4062
+#> 
+#> Running RWMH for model:  DPMP3-H 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.231 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.633 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.614 
+#> Warm up 4 
+#> RWMH - Accept ratio is: 0.543 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.571 
+#> Warm up 6 
+#> RWMH - Accept ratio is: 0.569 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.336 
+#> RWMH Time:  242.6236  seconds
+#>          A1     A2     A3     B1     B2     B3     C1     C2     w1     w2
+#> ESSs 4713.2 5254.2 5247.4 5433.5 4098.5 4554.4 3796.5 3700.1 3498.9 4070.8
+#>          w3     w4
+#> ESSs 6454.6 3917.5
+#> 
+#> Running RWMH for model:  DPMP3-Inv 
+#> Warm up 1 
+#> RWMH - Accept ratio is: 0.104 
+#> Warm up 2 
+#> RWMH - Accept ratio is: 0.605 
+#> Warm up 3 
+#> RWMH - Accept ratio is: 0.616 
+#> Warm up 4 
+#> RWMH - Accept ratio is: 0.535 
+#> Warm up 5 
+#> RWMH - Accept ratio is: 0.610 
+#> Warm up 6 
+#> RWMH - Accept ratio is: 0.610 
+#> iter 100000
+#> iter 200000
+#> iter 300000
+#> RWMH - Accept ratio is: 0.330 
+#> RWMH Time:  189.1757  seconds
+#>          A1     A2     A3     B1     B2   B3     C1     C2     w1     w2
+#> ESSs 5148.9 5497.1 5608.2 5817.8 7892.7 5636 3456.8 3284.7 4309.2 3563.5
+#>          w3     w4
+#> ESSs 6564.8 3647.5
+```
 ## Model comparisons
 
 
-```{r}
+
+```r
 IC <- function(logl, npar, k = log(npar)){
   IC <- -2 * logl + k * npar
   return(IC)
@@ -293,7 +515,8 @@ burn <- 1000
 ```
 
 ### Compute marginals and Bayesian Information criteria (BICs)
-```{r, error = TRUE, results = 'hide'}
+
+```r
 upperBoundVecs <- list(
   c(A = Inf, B = 1., C = rep(Inf, 3) , w = rep(Inf, 4)),
   c(A = rep(Inf, 2), B = rep(1., 2), C = rep(Inf, 2), w = rep(Inf, 4)),
@@ -334,14 +557,31 @@ for (i in 1:3) {
     modelScores[dpmp$Name, "BIC"] <- IC(modelsML[[dpmp$Name]]$LogLValML, numParams)
   }
 }
+#> Warning: 19500 of the 19500 log_prob() evaluations on the warp-transformed
+#> posterior draws produced -Inf/Inf.
+#> Warning: 19500 of the 19500 log_prob() evaluations on the warp-transformed
+#> proposal draws produced -Inf/Inf.
+#> Error in out[!from@positive] <- -out[!from@positive]: NAs are not allowed in subscripted assignments
 ```
 
-```{r, echo = FALSE}
-knitr::kable(modelScores, caption = "Marginals, log-likelihoods and BICS")
-```
+
+Table: Marginals, log-likelihoods and BICS
+
+             MarginalLikelihood   LogLikelihood   BIC
+----------  -------------------  --------------  ----
+DPMP1-I                       0               0     0
+DPMP1-H                       0               0     0
+DPMP1-Inv                     0               0     0
+DPMP2-I                       0               0     0
+DPMP2-H                       0               0     0
+DPMP2-Inv                     0               0     0
+DPMP3-I                       0               0     0
+DPMP3-H                       0               0     0
+DPMP3-Inv                     0               0     0
 
 ### Compute Bayes Factors (BFs)
-```{r}
+
+```r
 marginals <- modelScores["MarginalLikelihood"]
 bf1H1I <- bridgesampling::bayes_factor(
   marginals["DPMP1-H", ], marginals["DPMP1-I", ], TRUE)
@@ -369,21 +609,22 @@ bf3Inv1Inv <- bridgesampling::bayes_factor(
   marginals["DPMP3-Inv", ], marginals["DPMP1-Inv", ], TRUE)
 ```
 
-1-H | 1-I : `r bf1H1I$bf`  
-1-Inv | 1-H : `r bf1Inv1H$bf`  
-2-H | 2-I : `r bf2H2I$bf`  
-2-Inv | 2-H : `r bf2Inv2H$bf`  
-3-H | 3-I : `r bf3H3I$bf`  
-3-Inv | 3-H : `r bf3Inv3H$bf`  
-2-I | 1-I : `r bf2I1I$bf`  
-2-H | 1-H : `r bf2H1H$bf`  
-2-Inv | 1-Inv : `r bf2Inv1Inv$bf`  
-3-I | 1-I : `r bf3I1I$bf`  
-3-H | 1-H : `r bf3H1H$bf`  
-3-Inv | 1-Inv : `r bf3Inv1Inv$bf`  
+1-H | 1-I : 0  
+1-Inv | 1-H : 0  
+2-H | 2-I : 0  
+2-Inv | 2-H : 0  
+3-H | 3-I : 0  
+3-Inv | 3-H : 0  
+2-I | 1-I : 0  
+2-H | 1-H : 0  
+2-Inv | 1-Inv : 0  
+3-I | 1-I : 0  
+3-H | 1-H : 0  
+3-Inv | 1-Inv : 0  
 
 ## Some Parameter Statistics
-```{r, results = "asis"}
+
+```r
 selectedModels <- c("DPMP1-Inv", "DPMP2-Inv", "DPMP3-Inv")
 for (model in selectedModels) {
   summary_ <- summary(coda::mcmc(drawsRWMHLst[[model]]))$statistics
@@ -391,10 +632,61 @@ for (model in selectedModels) {
 }
 ```
 
+
+
+Table: DPMP1-Inv
+
+             Mean          SD    Naive SE   Time-series SE
+---  ------------  ----------  ----------  ---------------
+A       0.0430330   0.0029585   0.0000148        0.0000369
+B       0.9671581   0.0109687   0.0000548        0.0001419
+C1      0.7747781   0.0650553   0.0003253        0.0007956
+C2      1.1489383   0.4220020   0.0021100        0.0051352
+C3     -0.0655941   0.0337293   0.0001686        0.0003879
+w1     -5.5173307   0.1757921   0.0008790        0.0023699
+w2    -10.0187005   0.3688743   0.0018444        0.0043259
+w3     -5.4529125   0.0331144   0.0001656        0.0003942
+w4     -5.8355669   0.2263137   0.0011316        0.0030828
+
+
+Table: DPMP2-Inv
+
+             Mean          SD    Naive SE   Time-series SE
+---  ------------  ----------  ----------  ---------------
+A1      0.0425266   0.0029470   0.0000147        0.0000383
+A2      0.0225523   0.0037956   0.0000190        0.0000444
+B1      0.9655974   0.0108148   0.0000541        0.0001183
+B2      0.8082889   0.0642763   0.0003214        0.0008334
+C1      0.7713541   0.0650450   0.0003252        0.0007996
+C2      1.1312390   0.4253269   0.0021266        0.0052862
+w1     -5.5271181   0.1679253   0.0008396        0.0024792
+w2    -10.0303252   0.3579169   0.0017896        0.0048000
+w3     -5.4238778   0.0484453   0.0002422        0.0005565
+w4     -5.8489658   0.2178291   0.0010891        0.0031666
+
+
+Table: DPMP3-Inv
+
+             Mean          SD    Naive SE   Time-series SE
+---  ------------  ----------  ----------  ---------------
+A1      0.0326497   0.0030131   0.0000151        0.0000420
+A2      0.0226907   0.0038908   0.0000195        0.0000525
+A3      0.0309430   0.0030087   0.0000150        0.0000402
+B1      0.9561369   0.0123037   0.0000615        0.0001613
+B2      0.8127167   0.0618663   0.0003093        0.0006964
+B3      0.9590436   0.0125104   0.0000626        0.0001666
+C1     -2.2284579   0.6872370   0.0034362        0.0116888
+C2      2.9133461   0.4968537   0.0024843        0.0086692
+w1     -5.6042844   0.1413287   0.0007066        0.0021530
+w2    -10.3206649   0.6810632   0.0034053        0.0114090
+w3     -5.4257631   0.0498756   0.0002494        0.0006156
+w4     -6.0726281   0.1938843   0.0009694        0.0032103
+
 ## Plots
 
 ### Posterior of intensity
-```{r}
+
+```r
 intensityDraws <- 
   array(0, dim = c(numDraws - burn, numObs, kNumTransitions))
 meanLogIntensitiesLst <- list()
@@ -418,11 +710,24 @@ for (i in c(1, 3)) {
       names(meanLogIntensitiesLst)[1:length(meanLogIntensitiesLst) - 1], dpmp$Name)
   }
 }
+#> iter 10000
+#> iter 20000
+#> iter 30000
+#> iter 10000
+#> iter 20000
+#> iter 30000
+#> iter 10000
+#> iter 20000
+#> iter 30000
+#> iter 10000
+#> iter 20000
+#> iter 30000
 intensityDraws <- exp(intensityDraws)
 ```
 
 ### Mean log intensity plots
-```{r, fig.height = 8, fig.width = 9, fig.cap = "Mean Log Intensities"}
+
+```r
 selectedModels <- c("DPMP1-I", "DPMP3-I", "DPMP1-Inv", "DPMP3-Inv")
 labY <- c(
   expression("Log intensity" ~ IG %->% SIG), 
@@ -459,9 +764,15 @@ for (tt in kTransitionTypes) {
 }
 ```
 
+<div class="figure" style="text-align: center">
+<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-8-1.png" alt="Mean Log Intensities"  />
+<p class="caption">Mean Log Intensities</p>
+</div>
+
 
 ### Joint distribution plots
-```{r, fig.height = 8, fig.width = 5.5}
+
+```r
 selectedDraws <- drawsRWMHLst[["DPMP3-Inv"]][-(1:burn), ]
 par(mfrow = c(2, 1), mar = c(4.2, 4.2, 1, 2))
 plot(
@@ -492,8 +803,11 @@ points(selectedDraws[, "C1"][ix], selectedDraws[, "C2"][ix], col = "red",
        cex = 0.2, pch = 19)
 ```
 
+<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
+
 ### Highest Posterior Density (HPD) intensity plots
-```{r, fig.height = 8, fig.width = 9, fig.cap = "HPD plots"}
+
+```r
 par(mfcol = c(2, 2))
 ttIdx <- 0
 for (tt in kTransitionTypes) {
@@ -514,3 +828,8 @@ for (tt in kTransitionTypes) {
   )
 }
 ```
+
+<div class="figure" style="text-align: center">
+<img src="bayesgas-modelcomp_files/figure-html/unnamed-chunk-10-1.png" alt="HPD plots"  />
+<p class="caption">HPD plots</p>
+</div>

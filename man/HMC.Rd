@@ -2,7 +2,10 @@
 % Please edit documentation in R/bayesian_gas.R
 \name{HMC}
 \alias{HMC}
-\title{An object that fully specifies the prior for a model.}
+\title{Hamoltonian Monte Carlo.}
 \description{
-Allows for flexible specification of the prior over all model parameters.
+Similar to \code{GGS}, except that draws are generated using the Hamiltonian
+Monte Carlo algorithm. Usage requires that the gradient for the specified
+GAS model is implemented (this is currently not the case for the \code{DPMP}
+class of models).
 }

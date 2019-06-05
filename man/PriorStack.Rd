@@ -7,4 +7,23 @@
 \title{An object that fully specifies the prior for a model.}
 \description{
 Allows for flexible specification of the prior over all model parameters.
+Currently supports Normal, TruncatedNormal & ImproperUniform.
 }
+\section{Usage}{
+
+\preformatted{
+p <- new(PriorStack, priorStrs, priorParams)
+p <- new(PriorStack, priorStrs, priorParams, priorToParamIndex)
+
+p$LogPriors(params)
+p$LogPriorsWPar(params, priorParams)
+p$GradLogPriors(params)
+
+p$Filter(y, f1)
+}
+}
+
+\section{Details}{
+
+}
+

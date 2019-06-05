@@ -26,21 +26,21 @@ specific probability density and other desired specialized functionality.
 \section{Usage}{
 
 \preformatted{
-a <- new(GASModel, modelStr)
-a <- new(GASModel, modelStr, initParams)
-a <- new(GASModel, modelStr, initParams, priorStack)
+m <- new(GASModel, modelStr)
+m <- new(GASModel, modelStr, initParams)
+m <- new(GASModel, modelStr, initParams, priorStack)
 
-a <- new(BetaTEGARCH, initParams)
-a <- new(BetaTEGARCH, initParams, priorStack)
+m <- new(BetaTEGARCH, initParams)
+m <- new(BetaTEGARCH, initParams, priorStack)
 
-a$SetParams(params)
+m$SetParams(params)
 
-a$LogL(y, f1)
-a$LogLWPar(params, y, f1)
-a$LogPosteriorWPar(params, y, f1)
-a$GradLogLWPar(params, y, f1)
+m$LogL(y, f1)
+m$LogLWPar(params, y, f1)
+m$LogPosteriorWPar(params, y, f1)
+m$GradLogLWPar(params, y, f1)
 
-a$Filter(y, f1)
+m$Filter(y, f1)
 }
 }
 
@@ -50,12 +50,12 @@ a$Filter(y, f1)
 \code{new(GASModel, modelStr)},
 \code{new(GASModel, modelStr, initParams)},
 \code{new(GASModel, modelStr, initParams, priorStack)}.
-Create a new GASModel instance of type parent class \code{GASModel}. The
+Create a new GASModel instance of type \code{GASModel}. The
 instance has access to the functionality associated with the model type
 specified in modelStr. The string modelStr has to be one of the models
-included in the supported model list (see [BayesianGAS]). Optionally
+included in the supported model list (see \code{\link{BayesianGAS}}). Optionally
 supply a parameter vector \code{initParams} and a prior specification
-\code{priorStack} @seealso [PriorStack]
+\code{priorStack} (see \code{\link{PriorStack}})
 
 \code{new(Class, initParams)},
 \code{new(Class, initParams, priorStack)}

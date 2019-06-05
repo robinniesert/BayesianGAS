@@ -20,21 +20,21 @@
 #'
 #' @section Usage:
 #' \preformatted{
-#' a <- new(GASModel, modelStr)
-#' a <- new(GASModel, modelStr, initParams)
-#' a <- new(GASModel, modelStr, initParams, priorStack)
+#' m <- new(GASModel, modelStr)
+#' m <- new(GASModel, modelStr, initParams)
+#' m <- new(GASModel, modelStr, initParams, priorStack)
 #'
-#' a <- new(BetaTEGARCH, initParams)
-#' a <- new(BetaTEGARCH, initParams, priorStack)
+#' m <- new(BetaTEGARCH, initParams)
+#' m <- new(BetaTEGARCH, initParams, priorStack)
 #'
-#' a$SetParams(params)
+#' m$SetParams(params)
 #'
-#' a$LogL(y, f1)
-#' a$LogLWPar(params, y, f1)
-#' a$LogPosteriorWPar(params, y, f1)
-#' a$GradLogLWPar(params, y, f1)
+#' m$LogL(y, f1)
+#' m$LogLWPar(params, y, f1)
+#' m$LogPosteriorWPar(params, y, f1)
+#' m$GradLogLWPar(params, y, f1)
 #'
-#' a$Filter(y, f1)
+#' m$Filter(y, f1)
 #' }
 #'
 #' @section Details:
@@ -45,9 +45,9 @@
 #' Create a new GASModel instance of type \code{GASModel}. The
 #' instance has access to the functionality associated with the model type
 #' specified in modelStr. The string modelStr has to be one of the models
-#' included in the supported model list (see [BayesianGAS]). Optionally
+#' included in the supported model list (see \code{\link{BayesianGAS}}). Optionally
 #' supply a parameter vector \code{initParams} and a prior specification
-#' \code{priorStack} @seealso [PriorStack]
+#' \code{priorStack} (see \code{\link{PriorStack}})
 #'
 #' \code{new(Class, initParams)},
 #' \code{new(Class, initParams, priorStack)}
@@ -95,46 +95,73 @@ NULL
 #'
 #' @description
 #' Allows for flexible specification of the prior over all model parameters.
+#' Currently supports Normal, TruncatedNormal & ImproperUniform.
+#'
+#' @section Usage:
+#' \preformatted{
+#' p <- new(PriorStack, priorStrs, priorParams)
+#' p <- new(PriorStack, priorStrs, priorParams, priorToParamIndex)
+#'
+#' p$LogPriors(params)
+#' p$LogPriorsWPar(params, priorParams)
+#' p$GradLogPriors(params)
+#'
+#' p$Filter(y, f1)
+#' }
+#'
+#' @section Details:
 #'
 #' @export
 NULL
 
 #' @name GGS
 #'
-#' @title An object that fully specifies the prior for a model.
+#' @title Griddy Gibbs Sampler.
 #'
 #' @description
-#' Allows for flexible specification of the prior over all model parameters.
+#' Function that returns a sample of Monte Carlo draws given a GAS model
+#' of type \code{modelStr} and with a prior specified by the \code{priorStack}.
+#' Draws are generated using the Griddy Gibbs Sampler as introduced in
+#' Ritter, C., & Tanner, M. A. (1992). "Facilitating the Gibbs sampler:
+#' the Gibbs stopper and the griddy-Gibbs sampler".
 #'
 #' @export
 NULL
 
 #' @name RWMH
 #'
-#' @title An object that fully specifies the prior for a model.
+#' @title Random Walk Metropolis Hastings.
 #'
 #' @description
-#' Allows for flexible specification of the prior over all model parameters.
+#' Function of similar form as \code{GGS}, but draws are generated using a
+#' Random Walk Metropolis Hasting's algorithm with multivariate Student's-t
+#' proposal density.
 #'
 #' @export
 NULL
 
 #' @name HMC
 #'
-#' @title An object that fully specifies the prior for a model.
+#' @title Hamoltonian Monte Carlo.
 #'
 #' @description
-#' Allows for flexible specification of the prior over all model parameters.
+#' Function of similar form as \code{GGS}, but draws are generated
+#' using the Hamiltonian Monte Carlo algorithm. Usage requires that the gradient
+#' for the specified GAS model is implemented (this is currently not the case
+#' for the \code{DPMP} class of models).
 #'
 #' @export
 NULL
 
 #' @name VectorizedPosterior
 #'
-#' @title An object that fully specifies the prior for a model.
+#' @title Vectorized Posterior Distribution Function.
 #'
 #' @description
-#' Allows for flexible specification of the prior over all model parameters.
+#' Vectorized version of the posterior for a GAS model
+#' of type \code{modelStr} and with a prior specified by the \code{priorStack}.
+#' Used for inference in combination with the \code{\link[AdMit]{AdMit}}
+#' sampling algorithms.
 #'
 #' @export
 NULL

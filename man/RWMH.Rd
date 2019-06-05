@@ -2,7 +2,9 @@
 % Please edit documentation in R/bayesian_gas.R
 \name{RWMH}
 \alias{RWMH}
-\title{An object that fully specifies the prior for a model.}
+\title{Random Walk Metropolis Hastings.}
 \description{
-Allows for flexible specification of the prior over all model parameters.
+Similar to \code{GGS}, except that draws are generated using a Random Walk
+Metropolis Hasting's algorithm with multivariate Student's-t proposal
+density.
 }
