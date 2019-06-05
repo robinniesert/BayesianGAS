@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 ```
 
 # Model Comparisons: Dynamic Pooled Marked Point Process Models
-The dataset used in the Dynamic Pooled Marked Point Process (DPMP) models application of section 4.2 is not public. The analysis presented here is equivalent but based on simulated data.
+The dataset used in the Dynamic Pooled Marked Point Process (DPMP) models application of section 4.2 is not public. The analysis presented here is equivalent but based on simulated data. As a result some of the Bayesian model comparison results are different from the results reported in the thesis. Also, some of the plots might no longer convey the same insights.
 
 ```{r lib}
 library(BayesianGAS)
