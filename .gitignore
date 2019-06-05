@@ -1,3 +1,4 @@
+.DS_Store
 data-raw
 data/CreditRatings.Rdata
 vignettes/bayesgas-modelcomp-creditdata.Rmd
