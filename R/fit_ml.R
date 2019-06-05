@@ -41,7 +41,7 @@ FitML <- function(model, initParams, y, f1, method = 'BFGS',
     cat("ML Log-Likelihood: ", model$LogLValML, sprintf("\n"))
     cat("ML parameter estimates: ", model$ParamsML, sprintf("\n"))
     if (hessian) {
-      cat("ML standard errors: ", model$ParamsML, sprintf("\n"))
+      cat("ML standard errors: ", model$StdsML, sprintf("\n"))
     }
   }
 

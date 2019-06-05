@@ -21,9 +21,7 @@ knitr::opts_chunk$set(
 ```
 
 # Model Comparisons: Dynamic Pooled Marked Point Process Models
-
-This document contains the R code to reproduce the plots and statistical analysis presented in section 4.2 of 
-> Niesert, R. "Bayesian Inference for Generalized Autoregressive Score Models." (2017).
+The dataset used in the Dynamic Pooled Marked Point Process (DPMP) models application of section 4.2 is not public. The analysis presented here is equivalent but based on simulated data.
 
 ```{r lib}
 library(BayesianGAS)
@@ -40,15 +38,22 @@ kNumTransitions <- 4
 
 ## Simulate Data 
 
+The number of firms and the number of events used in simulation is similar to that of the real data set. Also, events are aggregated per month to reflect how the real data set is formatted. The DPMP model chosen for simulation using a 3 factor specification and inverse FI scaling as these choices seemed to fit the real data set best.
+
 ```{r sim_data}
+numInitIG  <- 750
+numInitSIG <- 1000
+numEvents  <- 2500
+numFactors <- 3
+scaling    <- -1.
 simParams <- c(
-  A = c(0.07, 0.04),
-  B = c(0.99, 0.96),
-  C = c(0.9, 1.2),
-  W = c(-5.42, -10.07, -5.45, -5.71)
+  A = c(0.055, 0.04, 0.06),
+  B = c(0.99, 0.96, 0.98),
+  C = c(0.9, 1.1),
+  W = c(-5.48, -10.13, -5.46, -5.76)
 )
-dpmpSimModel <- new(DPMP, simParams, 2, -1.)
-sims <- dpmpSimModel$Simulate(750, 1000, 4000, rep(0, 2))
+dpmpSimModel <- new(DPMP, simParams, numFactors, scaling)
+sims <- dpmpSimModel$Simulate(numInitIG, numInitSIG, numEvents, rep(0, numFactors))
 tauRaw <- as.integer(cumsum(sims[,5]))
 transitionsRaw <- data.frame(sims[,c(1:4)])
 possibleTranstionsRaw <- data.frame(sims[,c(6:9)])
@@ -84,11 +89,13 @@ numObs <- dim(y)[1]
 
 ## Maximum Likelihood (ML) estimation 
 
+Looking at the ML estimates for the DPMP3-Inv model in comparison to the true parameters used to simulate the data, it is evident that it is challenging to recover the true parameters of the data generating process given the limited number of points in time upon which events are recorded (~400 in this case). 
+
 ```{r ML_estimation}
 initParamVecs <- list(
-  c(A = 0.05, B = 0.95, C = c(0.5, 0.5, -0.5) , w = c(-5, -10, -5, -5)),
-  c(A = rep(0.025, 2), B = rep(0.8, 2), C = rep(0.5, 2) , w = c(-5, -10, -5, -5)),
-  c(A = rep(0.025, 3), B = rep(0.8, 3), C = rep(0.5, 2) , w = c(-5, -10, -5, -5))
+  c(A = 0.01, B = 0.9, C = c(0.5, 0.5, -0.5) , w = c(-5, -10, -5, -5)),
+  c(A = rep(0.01, 2), B = rep(0.9, 2), C = rep(0.1, 2) , w = c(-5, -10, -5, -5)),
+  c(A = rep(0.01, 3), B = rep(0.9, 3), C = rep(0.1, 2) , w = c(-5, -10, -5, -5))
 )
 parScaleVecs <- list(
   c(A = 0.01, B = 0.01, C = rep(0.05, 3) , w = rep(0.2, 4)),
@@ -313,7 +320,7 @@ for (i in 1:3) {
     dpmp <- new(DPMP, initParams, priorStack, numF, s)
     logPosterior <- function(pars, data, printErrors = FALSE) {
       out <- tryCatch(
-        {dpmp$LogPosteriorLWPar(pars, y, f1)},
+        {dpmp$LogPosteriorWPar(pars, y, f1)},
         error = function(cond) {
           if (printErrors) message(cond)
           return(-Inf)
@@ -321,10 +328,12 @@ for (i in 1:3) {
       )
       return(out)
     }
+    cat("Computing marginal for model: ", dpmp$Name, sprintf("\n"))
     marginal <- bridgesampling::bridge_sampler(
       drawsRWMHLst[[dpmp$Name]][-(1:burn), ], 
       log_posterior = logPosterior,
       data = NULL,
+      printErrors = FALSE,
       method = "warp3",
       lb = lb,
       ub = ub
