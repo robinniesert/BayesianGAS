@@ -1,3 +1,6 @@
+data-raw
+data/CreditRatings.Rdata
+vignettes/bayesgas-modelcomp-creditdata.Rmd
 inst/doc
 .Rproj.user
 .Rhistory

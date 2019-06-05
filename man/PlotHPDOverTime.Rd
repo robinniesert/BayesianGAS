@@ -8,7 +8,8 @@ PlotHPDOverTime(statDraws, observations, dates, startDate = NULL,
   endDate = NULL, alpha = 0.99, ylab = NULL, statStr = "",
   obsStr = "Obs", statsML = NULL, zoomDate = NULL, xy1 = NULL,
   xy2 = NULL, modeCol = "red", MLCol = "blue", fillCol = "pink1",
-  borderCol = "red2")
+  borderCol = "red2", newPlot = TRUE, ylim = c(0, 100),
+  dateAxisStep = "2 months")
 }
 \arguments{
 \item{statDraws}{Matrix of posterior samples of shape \code{numDraws} by
@@ -61,6 +62,12 @@ for \code{\link{polygon}}.}
 
 \item{borderCol}{Color for the borders of the HPD region. Passed to
 \code{col} argument \code{\link{plot}}.}
+
+\item{newPlot}{Boolean indicating of plot should be placed in a new figure.}
+
+\item{ylim}{Passed to code{ylim} argument \code{\link{plot}}.}
+
+\item{dateAxisStep}{Date axis tick spacing in time units.}
 }
 \description{
 Plots the (100 * \code{alpha})% highest posterior density (HPD) boundaries of

@@ -6,7 +6,7 @@ output:
   rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{MCMC Method Comparisons: Beta-Gen-t-EGARCH}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
   %\VignetteDepends{AdMit, coda, moments}
 ---
@@ -68,7 +68,7 @@ numObs <- length(returns)
 
 ## Maximum Likelihood (ML) estimation 
 
-```{r ML_estimation}
+```{r ML_estimation_betategarch}
 initParams  <- c(
   omega = ltScale,
   A = 0.05,

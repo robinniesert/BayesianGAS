@@ -36,6 +36,7 @@ RCPP_MODULE(GASModel){
     .derives<GASModel>("GASModel")
     .constructor()
     .constructor<NumericVector>()
+    .constructor<NumericVector, PriorStack>()
     .constructor<double, double, double, double, double, double>()
     .method("VolFilter", &BetaGenTEGARCH::VolFilter)
     .field("Mu", &BetaGenTEGARCH::Mu)

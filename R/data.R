@@ -5,7 +5,7 @@
 #'
 #' @docType data
 #' @keywords datasets
-#' @name SP500
+#' @name spData
 #' @usage data(SP500)
 #' @format A data frame called \code{spData} with 5032 rows and 7 columns:
 #'  \itemize{

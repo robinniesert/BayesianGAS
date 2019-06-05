@@ -54,7 +54,7 @@ rawData <- rawData[order(rawData$datadate),]
 # Assign a numerical value to each month in the dataset
 dates <- floor_date(rawData$datadate, unit = "months")
 rawData$nummonth <- cumsum(!duplicated(dates))
-# Select the rows at whcih rating class transtions occur
+# Select the rows at which rating class transtions occur
 transitionData <- rawData[rawData[, "transition"] != "",]
 # Check if any company transitions more than once in a given month. This
 # validates the assumption of an orderly counting process at the monthly freq.
