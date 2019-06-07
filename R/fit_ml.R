@@ -1,16 +1,17 @@
-#' Wrapper of \code{stats::optim} for minimizing GASModel Log Likelihoods.
+#' Fit GAS Models by Maximum Likilihood (ML).
 #'
-#' Convenience function for ML estimation of GASModel parameters. Overrides some
-#' defaults of the \code{stats::optim} function to make it suited for Log
-#' Likelihood maximization.
+#' Wrapper function for \code{\link[stats]{optim}} to facilitate ML estimation
+#' of GAS model parameters. Overrides some defaults of the
+#' \code{\link[stats]{optim}} function to make it suited for Log Likelihood
+#' maximization.
 #'
-#' @param model String or GASModel object.
+#' @param model String or \code{\link{GASModel}} object.
 #' @param initParams Vector or list of initial parameters.
 #' @param y Array like data object passed to the Log Likelihood function.
-#' @param f1 Starting values for the GASModels time varying parameters.
+#' @param f1 Starting values for the GAS models time varying parameters.
 #' @param method,control,hessian,verbose See \code{\link[stats]{optim}} for
 #' details.
-#' @param ... Other arguments passed to \code{stats::optim}.
+#' @param ... Other arguments passed to \code{\link[stats]{optim}}.
 #'
 #' @export
 FitML <- function(model, initParams, y, f1, method = 'BFGS',

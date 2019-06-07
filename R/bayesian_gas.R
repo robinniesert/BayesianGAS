@@ -7,13 +7,13 @@
 #' DPMP           Rcpp_DPMP-class           Rcpp_DPMP
 #'
 #'
-#'
 #' @title Generalized Autoregressive Score (GAS) models
 #'
 #' @description
-#' The GAS framework provides a lot of structure, which all models within the
-#' framework share. The implementations of the models in this package reflect
-#' this structure through class ineheritance. The parent \code{GASmodel} class
+#' The GAS framework as introduced in introduced in Creal, Lucas & Koopman
+#' (2011), provides a lot of structure, which all models within the framework
+#' share. The implementations of the models in this package reflect
+#' this structure through class ineheritance. The base \code{GASmodel} class
 #' implements a significant share of the functionality and also functions as an
 #' interface. The specific GAS model classes implement the details of the model
 #' specific probability density and other desired specialized functionality.
@@ -154,6 +154,12 @@ NULL
 #' Ritter, C., & Tanner, M. A. (1992). "Facilitating the Gibbs sampler:
 #' the Gibbs stopper and the griddy-Gibbs sampler".
 #'
+#' @usage
+#' \preformatted{
+#' GGS(modelStr, priorStack, y, f1, initParams, grid, iter, logOffset, verbose,
+#'   printIter)
+#' }
+#'
 #' @export
 NULL
 
@@ -162,9 +168,15 @@ NULL
 #' @title Random Walk Metropolis Hastings.
 #'
 #' @description
-#' Function of similar form as \code{GGS}, but draws are generated using a
-#' Random Walk Metropolis Hasting's algorithm with multivariate Student's-t
+#' Function of similar form as \code{\link{GGS}}, but draws are generated using
+#' a Random Walk Metropolis Hasting's algorithm with multivariate Student's-t
 #' proposal density.
+#'
+#' @usage
+#' \preformatted{
+#' RWMH(modelStr, priorStack, y, f1, initParams, sigma, iter, stepsize, df,
+#'   verbose, printIter, thinning)
+#' }
 #'
 #' @export
 NULL
@@ -174,10 +186,16 @@ NULL
 #' @title Hamoltonian Monte Carlo.
 #'
 #' @description
-#' Function of similar form as \code{GGS}, but draws are generated
+#' Function of similar form as \code{\link{GGS}}, but draws are generated
 #' using the Hamiltonian Monte Carlo algorithm. Usage requires that the gradient
 #' for the specified GAS model is implemented (this is currently not the case
 #' for the \code{DPMP} class of models).
+#'
+#' @usage
+#' \preformatted{
+#' HMC(modelStr, priorStack, y, f1, initParams, iter, mass, stepsize,
+#'   integrationTime, lb, ub, stepReductionFactor, verbose, printIter)
+#' }
 #'
 #' @export
 NULL
@@ -188,9 +206,15 @@ NULL
 #'
 #' @description
 #' Vectorized version of the posterior for a GAS model
-#' of type \code{modelStr} and with a prior specified by the \code{priorStack}.
+#' of type \code{modelStr} and with a prior specified by the
+#' \code{\link{priorStack}}.
 #' Used for inference in combination with the \code{\link[AdMit]{AdMit}}
 #' sampling algorithms.
+#'
+#' @usage
+#' \preformatted{
+#' VectorizedPosterior(params, modelStr, priorStack, y, f1, logOffset, log)
+#' }
 #'
 #' @export
 NULL

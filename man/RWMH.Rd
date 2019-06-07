@@ -3,8 +3,14 @@
 \name{RWMH}
 \alias{RWMH}
 \title{Random Walk Metropolis Hastings.}
+\usage{
+\preformatted{
+RWMH(modelStr, priorStack, y, f1, initParams, sigma, iter, stepsize, df,
+  verbose, printIter, thinning)
+}
+}
 \description{
-Function of similar form as \code{GGS}, but draws are generated using a
-Random Walk Metropolis Hasting's algorithm with multivariate Student's-t
+Function of similar form as \code{\link{GGS}}, but draws are generated using
+a Random Walk Metropolis Hasting's algorithm with multivariate Student's-t
 proposal density.
 }

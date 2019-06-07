@@ -3,6 +3,12 @@
 \name{GGS}
 \alias{GGS}
 \title{Griddy Gibbs Sampler.}
+\usage{
+\preformatted{
+GGS(modelStr, priorStack, y, f1, initParams, grid, iter, logOffset, verbose,
+  printIter)
+}
+}
 \description{
 Function that returns a sample of Monte Carlo draws given a GAS model
 of type \code{modelStr} and with a prior specified by the \code{priorStack}.

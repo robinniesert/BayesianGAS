@@ -3,9 +3,15 @@
 \name{VectorizedPosterior}
 \alias{VectorizedPosterior}
 \title{Vectorized Posterior Distribution Function.}
+\usage{
+\preformatted{
+VectorizedPosterior(params, modelStr, priorStack, y, f1, logOffset, log)
+}
+}
 \description{
 Vectorized version of the posterior for a GAS model
-of type \code{modelStr} and with a prior specified by the \code{priorStack}.
+of type \code{modelStr} and with a prior specified by the
+\code{\link{priorStack}}.
 Used for inference in combination with the \code{\link[AdMit]{AdMit}}
 sampling algorithms.
 }

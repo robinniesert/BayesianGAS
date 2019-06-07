@@ -2,27 +2,28 @@
 % Please edit documentation in R/fit_ml.R
 \name{FitML}
 \alias{FitML}
-\title{Wrapper of \code{stats::optim} for minimizing GASModel Log Likelihoods.}
+\title{Fit GAS Models by Maximum Likilihood (ML).}
 \usage{
 FitML(model, initParams, y, f1, method = "BFGS", control = list(maxit =
   1e+05), hessian = TRUE, verbose = TRUE, ...)
 }
 \arguments{
-\item{model}{String or GASModel object.}
+\item{model}{String or \code{\link{GASModel}} object.}
 
 \item{initParams}{Vector or list of initial parameters.}
 
 \item{y}{Array like data object passed to the Log Likelihood function.}
 
-\item{f1}{Starting values for the GASModels time varying parameters.}
+\item{f1}{Starting values for the GAS models time varying parameters.}
 
 \item{method, control, hessian, verbose}{See \code{\link[stats]{optim}} for
 details.}
 
-\item{...}{Other arguments passed to \code{stats::optim}.}
+\item{...}{Other arguments passed to \code{\link[stats]{optim}}.}
 }
 \description{
-Convenience function for ML estimation of GASModel parameters. Overrides some
-defaults of the \code{stats::optim} function to make it suited for Log
-Likelihood maximization.
+Wrapper function for \code{\link[stats]{optim}} to facilitate ML estimation
+of GAS model parameters. Overrides some defaults of the
+\code{\link[stats]{optim}} function to make it suited for Log Likelihood
+maximization.
 }
